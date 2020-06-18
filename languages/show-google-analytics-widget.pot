@@ -1,0 +1,192 @@
+# Copyright (C) 2018 Show Google Analytics widget
+# This file is distributed under the same license as the Show Google Analytics widget package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Show Google Analytics widget 1.2.6\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/show-google-analytics-widget\n"
+"POT-Creation-Date: 2018-07-03 16:18:45+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2018-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: wp-ga-count.php:18
+msgid "Settings"
+msgstr ""
+
+#: wp-ga-count.php:34
+msgid "顯示GA瀏覽人次統計"
+msgstr ""
+
+#: wp-ga-count.php:36
+msgid "顯示參觀人次的統計數字"
+msgstr ""
+
+#: wp-ga-count.php:44
+msgid "參觀人氣"
+msgstr ""
+
+#: wp-ga-count.php:52
+msgid "自定標題："
+msgstr ""
+
+#: wp-ga-count.php:56
+msgid "顯示類型："
+msgstr ""
+
+#: wp-ga-count.php:58
+msgid "Visit(人次)"
+msgstr ""
+
+#: wp-ga-count.php:59
+msgid "Pageview(頁次)"
+msgstr ""
+
+#: wp-ga-count.php:63
+msgid "調整計次："
+msgstr ""
+
+#: wp-ga-count.php:64
+msgid "輸入起跳的數字"
+msgstr ""
+
+#: wp-ga-count.php:146
+msgid "本日人氣："
+msgstr ""
+
+#: wp-ga-count.php:147
+msgid "累積人氣："
+msgstr ""
+
+#: wp-ga-count.php:186
+msgid "查看本月份的瀏覽人次統計表"
+msgstr ""
+
+#: wp-ga-count.php:187
+msgid "本月份GA"
+msgstr ""
+
+#: wp-ga-count.php:212
+msgid "是否還沒設定GA服務帳號？"
+msgstr ""
+
+#: wp-ga-count.php:213
+msgid "立刻去新增"
+msgstr ""
+
+#: wp-ga-count.php:214
+msgid "相關訊息："
+msgstr ""
+
+#: wp-ga-count.php:220
+msgid "從 "
+msgstr ""
+
+#: wp-ga-count.php:220
+msgid " 到 "
+msgstr ""
+
+#: wp-ga-count.php:224
+msgid "Total Results"
+msgstr ""
+
+#: wp-ga-count.php:228
+msgid "Total Pageviews"
+msgstr ""
+
+#: wp-ga-count.php:232
+msgid "Total Visits"
+msgstr ""
+
+#: wp-ga-count.php:236
+msgid "Result Date Range"
+msgstr ""
+
+#: wp-ga-count.php:295
+msgid "注意: 尚未將 p12 檔案上傳到網站內"
+msgstr ""
+
+#: wp-ga-count.php:437
+msgid "瀏覽次數："
+msgstr ""
+
+#: wp-ga-count.php:460
+msgid "設定GA服務帳號的參數"
+msgstr ""
+
+#: wp-ga-count.php:461
+msgid "GA服務帳號"
+msgstr ""
+
+#: wp-ga-count.php:502
+msgid "設定GA必要的參數"
+msgstr ""
+
+#: wp-ga-count.php:507
+msgid "GA授權服務帳號："
+msgstr ""
+
+#: wp-ga-count.php:514
+msgid "上傳 P12 key檔："
+msgstr ""
+
+#: wp-ga-count.php:518
+msgid "目前檔案位置："
+msgstr ""
+
+#: wp-ga-count.php:521
+msgid "你可以先自行更改檔名再上傳。"
+msgstr ""
+
+#: wp-ga-count.php:528
+msgid "當日人次暫存時間："
+msgstr ""
+
+#: wp-ga-count.php:530
+msgid "預設時間為600秒，過短的時間有可能造成網頁開啟過於緩慢。"
+msgstr ""
+
+#: wp-ga-count.php:535
+msgid "網站的 Profile ID："
+msgstr ""
+
+#: wp-ga-count.php:537
+msgid "到你的 Google Analytics 中，切換到你的站台，在瀏覽器的URL應該是這樣子『https://www.google.com/analytics/web/#report/visitors-overview/a1234b23478970 p1234567/』，找最後 p 之後的數字1234567"
+msgstr ""
+
+#: wp-ga-count.php:542 wp-ga-count.php:545
+msgid "文章瀏覽次數"
+msgstr ""
+
+#: wp-ga-count.php:547
+msgid "關閉"
+msgstr ""
+
+#: wp-ga-count.php:548
+msgid "開啟"
+msgstr ""
+
+#: wp-ga-count.php:551
+msgid "(開啟本功能，可能會跟某些佈景衝突)"
+msgstr ""
+
+#: wp-ga-count.php:557
+msgid "(第一次設定，以上資料來自小工具設定，請按下儲存按鈕做轉換儲存。)"
+msgstr ""
+#. Plugin Name of the plugin/theme
+msgid "Show Google Analytics widget"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://webdesign.sig.tw"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "像痞客邦的顯示今日參觀人數和總參觀人數的小工具"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Simon Chuang"
+msgstr ""
