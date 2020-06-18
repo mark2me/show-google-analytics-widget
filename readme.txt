@@ -2,7 +2,7 @@
 Contributors: simon_tw
 Tags: google, analytics, ga, google analytics, tracking, pixnet
 Requires at least: 4.0
-Tested up to: 4.8
+Tested up to: 5.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,6 +31,10 @@ e.g.
 2. Show google analytics visit data for this month.
 
 == Changelog ==
+
+= 1.3 =
+* Bug 修正
+* 移除顯示文章瀏覽次數
 
 = 1.2 =
 * 新增顯示文章瀏覽次數
