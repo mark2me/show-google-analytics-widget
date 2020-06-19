@@ -307,7 +307,6 @@ class Sig_Ga_Widget{
         } else {
             if (is_array($data)) {
                 //$filter = 'country == United States && browser == Firefox || browser == Chrome';
-                print_r($data);
                 list($dimensions, $metrics, $sort_metric, $filter,$start_date, $end_date, $start_index, $max_results) = $data;
 
                 require_once(SIG_GA_DIR.'/lib/gapi.class.php');
