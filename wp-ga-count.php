@@ -306,7 +306,7 @@ class Sig_Ga_Widget{
             return false;
         } else {
             if (is_array($data)) {
-                //$filter = 'country == United States && browser == Firefox || browser == Chrome';
+
                 list($dimensions, $metrics, $sort_metric, $filter,$start_date, $end_date, $start_index, $max_results) = $data;
 
                 require_once(SIG_GA_DIR.'/lib/gapi.class.php');
@@ -420,7 +420,7 @@ class Sig_Ga_Widget{
     }
 
     public function register_ga_opt_var() {
-        register_setting( 'sig-ga-option-group', SIG_GA_CONFIG, 'handle_file_upload' );
+        register_setting( 'sig-ga-option-group', SIG_GA_CONFIG, array($this,'handle_file_upload') );
     }
 
     public function handle_file_upload($option) {
