@@ -2,8 +2,9 @@
 Contributors: simon_tw
 Tags: google, analytics, ga, google analytics, tracking, pixnet
 Requires at least: 4.0
-Tested up to: 5.4.2
-Stable tag: 1.3
+Tested up to: 5.5.3
+Requires PHP: 7.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +33,12 @@ e.g.
 2. Show google analytics visit data for this month.
 
 == Changelog ==
+
+= 1.4 =
+* 日期計算改採後台設定的時區
+* 支援短代碼顯示文章瀏覽次數，短代碼寫法：[sig_post_pv label="瀏覽："]
+* 今日熱門文章
+* 其他功能修正
 
 = 1.3 =
 * Bug 修正
