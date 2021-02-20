@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: Show Google Analytics widget
- * Plugin URI:  http://webdesign.sig.tw
- * Description: 抓取 Google Analytics 來顯示網站的今日參觀人數和總參觀人數小工具
- * Version:     1.4.1
+ * Plugin URI:  https://github.com/mark2me/show-google-analytics-widget
+ * Description: 利用 Google Analytics 資料來顯示網站的今日參觀人數和總參觀人數小工具
+ * Version:     1.4.2
  * Author:      Simon Chuang
  * Author URI:  https://github.com/mark2me
  * License:     GPLv2
@@ -14,7 +14,7 @@
 define( 'SIG_GA_PLUGIN_NAME', 'wp-show-ga-widget' );
 define( 'SIG_GA_DIR', dirname(__FILE__) );
 define( 'SIG_GA_WIDGET', 'sig-show-pageview');    // widget dom id
-define( 'SIG_GA_CACHE', 600);                     // today visit cache time
+define( 'SIG_GA_CACHE', 600);                     // cache time
 define( 'SIG_GA_CONFIG', 'sig-ga-config');
 define( 'SIG_GA_POST_VIEW', 'views');
 
@@ -126,7 +126,7 @@ class  Sig_Ga_Count_Widget extends WP_Widget {
 
                 if( !empty($sig_ga_ajax) && $sig_ga_ajax==1 ){
                     $widget_id = $args['widget_id'];
-                    $content .= '<div id="'.$widget_id.'"><img src="'. plugin_dir_url(__FILE__) .'img/loading.gif"></div>';
+                    $content .= '<div id="'.$widget_id.'"><img src="'. plugin_dir_url(__FILE__) .'assets/img/loading.gif"></div>';
                     $content .= $after_widget;
                     $content .= '<script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action=sig_pv&t='.$sig_ga_type.'&n='.$sig_ga_nums.'\', function(data) {$(\'#'.$widget_id.'\').html(data);    });});</script>';
                 }else{
@@ -198,156 +198,64 @@ class SigGaWidget{
 
         if($hook != 'toplevel_page_sig-view-ga')  return;
 
-        wp_enqueue_style( 'chart', plugin_dir_url(__FILE__) . 'js/morris.css' );
-        wp_enqueue_script( 'raphael', plugin_dir_url(__FILE__) . 'js/raphael-min.js',array('jquery') );
-        wp_enqueue_script('chart', plugin_dir_url(__FILE__) . 'js/morris.min.js',array('jquery'));
+        wp_enqueue_style( 'chart', plugin_dir_url(__FILE__) . 'assets/js/morris.css' );
+        wp_enqueue_script( 'raphael', plugin_dir_url(__FILE__) . 'assets/js/raphael-min.js',array('jquery') );
+        wp_enqueue_script('chart', plugin_dir_url(__FILE__) . 'assets/js/morris.min.js',array('jquery'));
+
+        wp_enqueue_style( 'bootstrap4', plugin_dir_url(__FILE__) . 'assets/css/bootstrap-grid.min.css' );
     }
 
     public function add_ga_view_page() {
 
-        $ga = $this->call_ga_api([
-            array('date'),
-            array('pageviews','visits'),
-            'date',
-            '',
-            current_time('Y-m-01'),
-            current_time('Y-m-d'),
-            1,
-            10000
-        ]);
-
-        if( !is_object($ga) ) {
+        if( $this->check_ga_config() === false ){
             echo '<div class="wrap"><h1>' . __('是否還沒設定GA服務帳號？','show-google-analytics-widget') . '</h1></div>';
             echo '<a href="/wp-admin/options-general.php?page=sig-ga-account" class="button button-primary widgets-chooser-add">' . __('立刻去新增','show-google-analytics-widget') . '</a>';
-            if(!empty($ga)) echo '<p>' . __('相關訊息：','show-google-analytics-widget') . '<br>'.$ga.'</p>';
+        }else{
+
+    ?>
+            <div class="container-fluid" style="margin-top: 15px;">
+                <div class="row">
+                    <div class="col-12 col-sm-6">
+                        <div style="background-color: #fff;padding: 20px;"><?php require_once(SIG_GA_DIR.'/templates/month.php'); ?></div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div style="background-color: #fff;padding: 20px;"><?php require_once(SIG_GA_DIR.'/templates/total.php'); ?></div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <?php require_once(SIG_GA_DIR.'/templates/hot.php'); ?>
+                    </div>
+                </div>
+            </div>
+
+    <?php
+
+        }
+    }
+
+    private function check_ga_config() {
+
+        $config = $this->options;
+
+        if( $config !== false ){
+
+            if(!isset($config['sig_ga_account'])) return false;
+            $account  = $config['sig_ga_account'];
+
+            if(!isset($config['sig_ga_upload'])) return false;
+            $p12      = $config['sig_ga_upload'];
+
+            if(!isset($config['sig_ga_id'])) return false;
+            $report_id= $config['sig_ga_id'];
 
         } else {
-        ?>
-            <div class="wrap">
-                <h3><?php echo __('從 ','show-google-analytics-widget') . current_time('Y-m-01') . __(' 到 ','show-google-analytics-widget') . current_time('Y-m-d')?></h3>
-                <div id="mychart" style="height: 250px;"></div>
-                <table class="">
-                <tr>
-                    <th align="left"><?php _e('Pageviews','show-google-analytics-widget')?></th>
-                    <td><?php echo $ga->getPageviews() ?>
-                </tr>
-                <tr>
-                    <th align="left"><?php _e('Visits','show-google-analytics-widget')?></th>
-                    <td><?php echo $ga->getVisits() ?></td>
-                </tr>
-                </table>
-            </div>
-
-            <script>
-            new Morris.Line({
-                element: 'mychart',
-                data: [
-            <?php
-                foreach( $ga->getResults() as $k => $result) {
-                    if($k>0) echo ',';
-                    echo "{ x:'".substr($result,0,4).'-'.substr($result,4,2).'-'.substr($result,6)."', a: ".$result->getPageviews().", b: ".$result->getVisits()." }";
-                }
-            ?>
-                ],
-                xkey: 'x',
-                ykeys: ['a','b'],
-                labels: ['Pageview','Visits'],
-                fillOpacity: 1.0
-            });
-            </script>
-        <?php
+            return false;
         }
 
-            /* 今日文章點擊排名 */
-            $ga = $this->call_ga_api([
-                array('pageTitle','pagepath'),
-                array('pageviews'),
-                '-pageviews',
-                null,
-                current_time('Y-m-d'),
-                current_time('Y-m-d'),
-                1,
-                10
-            ]);
-
-            if( is_object($ga) ) {
-        ?>
-            <div class="wrap">
-                <h3><?php _e('今日熱門文章前10名','show-google-analytics-widget')?></h3>
-                <table class="wp-list-table widefat striped table-view-list">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th align="left"><?php _e('標題','show-google-analytics-widget')?></th>
-                            <th align="right"><?php _e('瀏覽次數','show-google-analytics-widget')?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                <?php
-                foreach( $ga->getResults() as $k => $result) {
-
-                    echo '<tr><td>'.($k+1).'</td><td><a href="'.$result->getPagepath().'">'.$result->getPagetitle().'</a></td><td>'.$result->getPageviews().'</td></tr>';
-                }
-
-                ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php
-            }
-
-/////////////
-            $ga = $this->call_ga_api([
-                array('year'),
-                array('pageviews','visits'),
-                'year'
-            ]);
-//print_r($ga);
-$views = 0;
-$visit = 0;
-
-?>
-
-<br><br>
-<table border='1'>
-<tr>
-  <td>Total Results</td>
-  <td>Total Pageviews</td>
-  <td>Total Visits</td>
-  <td>Date Range</td>
-</tr>
-<tr>
-  <td><?php echo $ga->getTotalResults() ?></td>
-  <td><?php echo $ga->getPageviews() ?></td>
-  <td><?php echo $ga->getVisits() ?></td>
-  <td><?php echo $ga->getStartDate() ?> to <?php echo $ga->getEndDate() ?></td>
-</tr>
-</table>
-
-<br><br>
-<table border='1'>
-<tr>
-  <td>Year</td>
-  <td>Pageviews</td>
-  <td>Visits</td>
-</tr>
-<?php foreach($ga->getResults() as $result):
-    $views += $result->getPageviews();
-    $visit += $result->getVisits();
-?>
-<tr>
-  <td><?php echo $result ?></td>
-  <td><?php echo $result->getPageviews() ?></td>
-  <td><?php echo $result->getVisits() ?></td>
-</tr>
-<?php endforeach;?>
-<tr>
-    <td></td>
-    <td><?php echo $views;?></td>
-    <td><?php echo $visit;?></td>
-</tr>
-</table>
-            <?php
+        if( empty($account) or empty($p12) or empty($report_id) ) {
+            return false;
+        }else{
+            return true;
+        }
 
     }
 
@@ -427,7 +335,7 @@ $visit = 0;
                 current_time('Y-m-d'),
                 current_time('Y-m-d'),
                 1,
-                10000
+                1
             ]);
 
             if( is_object($ga) ) {
@@ -472,21 +380,16 @@ $visit = 0;
 
     public function get_total_views($sig_ga_id) {
 
-        $key = 'sig_total_view_'.$sig_ga_id.time();
+        $key = 'sig_total_view_'.$sig_ga_id;
 
         $ga_view = get_transient($key);
 
         if( $ga_view === false ){
 
             $ga = $this->call_ga_api([
-                array('date'),
+                array('year'),
                 array('pageviews','visits'),
-                'date',
-                '',
-                '',
-                current_time('Y-m-d'),
-                1,
-                100
+                'year'
             ]);
 
             if( is_object($ga) ) {
@@ -728,7 +631,11 @@ $visit = 0;
             10
         ]);
 
-        return $ga->getPageviews();
+        if( is_object($ga) ) {
+            return $ga->getPageviews();
+        }else{
+            return '-';
+        }
     }
 }
 
