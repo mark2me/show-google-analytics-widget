@@ -437,8 +437,8 @@ class SigGaWidget{
     /**/
     public function setting_ga_option_menu(){
         add_options_page(
-            __('設定GA帳號參數','show-google-analytics-widget'),
-            __('設定GA帳號參數','show-google-analytics-widget'),
+            __('設定 GA 帳號及參數','show-google-analytics-widget'),
+            __('設定 GA 帳號及參數','show-google-analytics-widget'),
             'administrator',
             'sig-ga-account',
             array($this,'ga_settings_page')
@@ -478,7 +478,7 @@ class SigGaWidget{
 
         ?>
         <div class="wrap">
-            <h2><?php _e('設定GA帳號參數','show-google-analytics-widget')?></h2>
+            <h2><?php _e('設定 GA 帳號及相關參數','show-google-analytics-widget')?></h2>
             <form method="post" action="options.php" enctype="multipart/form-data">
                 <?php settings_fields('sig-ga-option-group'); ?>
                 <table class="form-table">
@@ -489,16 +489,21 @@ class SigGaWidget{
                     </tr>
 
                     <tr valign="top">
-                        <th scope="row"><?php _e('上傳 P12 key檔：','show-google-analytics-widget')?></th>
-                        <td><input type="file" class="regular-text" name="sig_ga_upload" />
-                            <p class="description"><?php
+                        <th scope="row"><?php _e('上傳 P12 key 檔：','show-google-analytics-widget')?></th>
+                        <td><p class="description"><?php
                                 if( isset($config['sig_ga_upload']) and $config['sig_ga_upload'] !==''){
-                                    echo __('目前檔案位置：','show-google-analytics-widget') . $config['sig_ga_upload'];
+                                    if( is_file($config['sig_ga_upload']) ){
+                                        echo __('目前檔案位置：','show-google-analytics-widget') . $config['sig_ga_upload'];
+                                    }else{
+                                        echo __('尚未上傳','show-google-analytics-widget');
+                                    }
                                     echo '<input type="hidden" name="'.SIG_GA_CONFIG.'[sig_ga_upload]" value="'.$config['sig_ga_upload'].'">';
+
                                 }else{
                                     echo __('你可以先自行更改檔名再上傳。','show-google-analytics-widget');
                                 }
-                            ?></p></td>
+                            ?></p>
+                            <input type="file" class="regular-text" name="sig_ga_upload" /></td>
                     </tr>
 
                     <tr valign="top">
@@ -514,8 +519,8 @@ class SigGaWidget{
                     </tr>
 
                     <tr valign="top">
-                        <th scope="row"><?php _e('使用js呼叫：','show-google-analytics-widget')?></th>
-                        <td><input type="checkbox" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_ajax]" value="1" <?php echo ( !empty($config['sig_ga_ajax']) && $config['sig_ga_ajax']==1 ) ? 'checked="checked"':''; ?> /> <?php _e('若安裝了頁面快取外掛，數字無法變動時，建議將此項目勾選','show-google-analytics-widget')?></td>
+                        <th scope="row"><?php _e('使用非同步顯示數據：','show-google-analytics-widget')?></th>
+                        <td><input type="checkbox" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_ajax]" value="1" <?php echo ( !empty($config['sig_ga_ajax']) && $config['sig_ga_ajax']==1 ) ? 'checked="checked"':''; ?> /> <?php _e('若安裝了快取外掛，統計數字長時間都無法變動時，建議將此項目勾選','show-google-analytics-widget')?></td>
                     </tr>
 <!--
                     <tr valign="top">
