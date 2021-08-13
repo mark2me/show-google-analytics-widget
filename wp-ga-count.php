@@ -3,7 +3,7 @@
  * Plugin Name: Show Google Analytics widget
  * Plugin URI:  https://github.com/mark2me/show-google-analytics-widget
  * Description: 利用 Google Analytics 資料來顯示網站的今日參觀人數和總參觀人數小工具
- * Version:     1.4.2
+ * Version:     1.4.3
  * Author:      Simon Chuang
  * Author URI:  https://github.com/mark2me
  * License:     GPLv2
@@ -78,6 +78,12 @@ class  Sig_Ga_Count_Widget extends WP_Widget {
         $instance['sig_ga_nums'] = preg_replace('/[^0-9]/','',$instance['sig_ga_nums']);
         if(empty($instance['sig_ga_nums'])) $instance['sig_ga_nums'] = 0;
 
+        //clear transient
+        $obj = new SigGaWidget();
+        $config = $obj->get_ga_config();
+        delete_transient('sig_today_view_'.$config['sig_ga_id']);
+        delete_transient('sig_total_view_'.$config['sig_ga_id']);
+
         return $instance;
     }
 
@@ -88,6 +94,8 @@ class  Sig_Ga_Count_Widget extends WP_Widget {
         $sig_ga_title   = $instance['sig_ga_title'];
         $sig_ga_type    = $instance['sig_ga_type'];
         $sig_ga_nums    = $instance['sig_ga_nums'];
+
+        $widget_id = $args['widget_id'];
 
         $obj = new SigGaWidget();
         $config = $obj->get_ga_config();
@@ -118,6 +126,7 @@ class  Sig_Ga_Count_Widget extends WP_Widget {
 
             }else{
 
+
                 $sig_ga_id = $config['sig_ga_id'];
                 $sig_ga_ajax = ( isset($config['sig_ga_ajax']) ) ? $config['sig_ga_ajax'] : 0;
 
@@ -125,13 +134,13 @@ class  Sig_Ga_Count_Widget extends WP_Widget {
                 $content .= $before_title . $sig_ga_title . $after_title;
 
                 if( !empty($sig_ga_ajax) && $sig_ga_ajax==1 ){
-                    $widget_id = $args['widget_id'];
+
                     $content .= '<div id="'.$widget_id.'"><img src="'. plugin_dir_url(__FILE__) .'assets/img/loading.gif"></div>';
                     $content .= $after_widget;
-                    $content .= '<script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action=sig_pv&t='.$sig_ga_type.'&n='.$sig_ga_nums.'\', function(data) {$(\'#'.$widget_id.'\').html(data);    });});</script>';
+                    $content .= '<script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action='.SIG_GA_WIDGET.'&id='.$widget_id.'&t='.time().'\', function(data) {$(\'#'.$widget_id.'\').html(data);    });});</script>';
                 }else{
-                    $content .= $obj->show_today_views($sig_ga_id, $sig_ga_type);
-                    $content .= $obj->show_total_views($sig_ga_id, $sig_ga_type, $sig_ga_nums);
+                    $content .= $obj->show_today_views($sig_ga_id, $widget_id);
+                    $content .= $obj->show_total_views($sig_ga_id, $widget_id);
                     $content .= $after_widget;
                 }
 
@@ -168,8 +177,8 @@ class SigGaWidget{
         add_shortcode( 'sig_post_pv', array($this,'shortcode_post_pageviews') );
         add_filter( 'the_content', array($this,'add_view_in_the_content'), 10 );
 
-        add_action( 'wp_ajax_sig_pv', array($this,'wpajax_get_pv') );
-        add_action( 'wp_ajax_nopriv_sig_pv', array($this,'wpajax_get_pv') );
+        add_action( 'wp_ajax_'.SIG_GA_WIDGET, array($this,'wpajax_get_pv') );
+        add_action( 'wp_ajax_nopriv_'.SIG_GA_WIDGET, array($this,'wpajax_get_pv') );
 
     }
 
@@ -196,7 +205,7 @@ class SigGaWidget{
 
     public function add_ga_view_scripts($hook) {
 
-        if($hook != 'toplevel_page_sig-view-ga')  return;
+        if( !in_array($hook, array('toplevel_page_sig-view-ga','settings_page_sig-ga-account')) )  return;
 
         wp_enqueue_style( 'chart', plugin_dir_url(__FILE__) . 'assets/js/morris.css' );
         wp_enqueue_script( 'raphael', plugin_dir_url(__FILE__) . 'assets/js/raphael-min.js',array('jquery') );
@@ -363,9 +372,19 @@ class SigGaWidget{
         return $ga_view;
     }
 
-    public function show_today_views($sig_ga_id, $sig_ga_type=1){
+    public function show_today_views($sig_ga_id, $widget_id=''){
 
         $data = $this->get_today_views($sig_ga_id);
+
+        $sig_ga_type = 0;
+        $sig_ga_nums = 0;
+
+        if( !empty($widget_id) ){
+            $widget_id = end(explode("-",$widget_id));
+            $widget = get_option('widget_'.SIG_GA_WIDGET);
+            if( isset($widget[$widget_id]['sig_ga_type']) ) $sig_ga_type = $widget[$widget_id]['sig_ga_type'];
+            if( isset($widget[$widget_id]['sig_ga_nums']) ) $sig_ga_nums = $widget[$widget_id]['sig_ga_nums'];
+        }
 
         $today =  ($sig_ga_type==1) ? __('本日瀏覽：','show-google-analytics-widget'): __('本日人氣：','show-google-analytics-widget');
 
@@ -389,7 +408,12 @@ class SigGaWidget{
             $ga = $this->call_ga_api([
                 array('year'),
                 array('pageviews','visits'),
-                'year'
+                'year',
+                '',
+                '',
+                current_time('Y-m-d'),
+                1,
+                100
             ]);
 
             if( is_object($ga) ) {
@@ -419,9 +443,19 @@ class SigGaWidget{
         return $ga_view;
     }
 
-    public function show_total_views($sig_ga_id, $sig_ga_type=1, $sig_ga_nums=0) {
+    public function show_total_views($sig_ga_id, $widget_id='') {
 
         $data = $this->get_total_views($sig_ga_id);
+
+        $sig_ga_type = 0;
+        $sig_ga_nums = 0;
+
+        if( !empty($widget_id) ){
+            $widget_id = end(explode("-",$widget_id));
+            $widget = get_option('widget_'.SIG_GA_WIDGET);
+            if( isset($widget[$widget_id]['sig_ga_type']) ) $sig_ga_type = $widget[$widget_id]['sig_ga_type'];
+            if( isset($widget[$widget_id]['sig_ga_nums']) ) $sig_ga_nums = $widget[$widget_id]['sig_ga_nums'];
+        }
 
         $total =  ($sig_ga_type==1) ? __('累積瀏覽：','show-google-analytics-widget'): __('累積人氣：','show-google-analytics-widget');
 
@@ -479,72 +513,77 @@ class SigGaWidget{
         ?>
         <div class="wrap">
             <h2><?php _e('設定 GA 帳號及相關參數','show-google-analytics-widget')?></h2>
-            <form method="post" action="options.php" enctype="multipart/form-data">
-                <?php settings_fields('sig-ga-option-group'); ?>
-                <table class="form-table">
-                    <tr valign="top">
-                        <th scope="row"><?php _e('GA授權服務帳號：','show-google-analytics-widget')?></th>
-                        <td><input type="text" class="regular-text" name="<?php echo SIG_GA_CONFIG?>[sig_ga_account]" value="<?php echo esc_attr( $config['sig_ga_account'] ); ?>" />
-                        <p class="description">到 <a href="https://console.developers.google.com/" target="_blank">Google Developers</a> 申請，並下載p12檔案。再把這個服務帳號加入 Google Analytics 你的站台管理員，權限要可檢視和分析。 </p></td>
-                    </tr>
 
-                    <tr valign="top">
-                        <th scope="row"><?php _e('上傳 P12 key 檔：','show-google-analytics-widget')?></th>
-                        <td><p class="description"><?php
-                                if( isset($config['sig_ga_upload']) and $config['sig_ga_upload'] !==''){
-                                    if( is_file($config['sig_ga_upload']) ){
-                                        echo __('目前檔案位置：','show-google-analytics-widget') . $config['sig_ga_upload'];
-                                    }else{
-                                        echo __('尚未上傳','show-google-analytics-widget');
-                                    }
-                                    echo '<input type="hidden" name="'.SIG_GA_CONFIG.'[sig_ga_upload]" value="'.$config['sig_ga_upload'].'">';
+            <div class="container-">
+                <div class="row">
+                    <!-- left -->
+                    <div class="col-12 col-sm-8">
+                        <form method="post" action="options.php" enctype="multipart/form-data">
+                            <?php settings_fields('sig-ga-option-group'); ?>
+                            <table class="form-table">
+                                <tr valign="top">
+                                    <th scope="row"><?php _e('GA授權服務帳號：','show-google-analytics-widget')?></th>
+                                    <td><input type="text" class="regular-text" name="<?php echo SIG_GA_CONFIG?>[sig_ga_account]" value="<?php echo esc_attr( $config['sig_ga_account'] ); ?>" />
+                                    <p class="description">到 <a href="https://console.developers.google.com/" target="_blank">Google Developers</a> 申請，並下載p12檔案。再把這個服務帳號加入 Google Analytics 你的站台管理員，權限要可檢視和分析。 </p></td>
+                                </tr>
 
-                                }else{
-                                    echo __('你可以先自行更改檔名再上傳。','show-google-analytics-widget');
-                                }
-                            ?></p>
-                            <input type="file" class="regular-text" name="sig_ga_upload" /></td>
-                    </tr>
+                                <tr valign="top">
+                                    <th scope="row"><?php _e('上傳 P12 key 檔：','show-google-analytics-widget')?></th>
+                                    <td><p class="description"><?php
+                                            if( isset($config['sig_ga_upload']) and $config['sig_ga_upload'] !==''){
+                                                if( is_file($config['sig_ga_upload']) ){
+                                                    echo __('目前檔案位置：','show-google-analytics-widget') . $config['sig_ga_upload'];
+                                                }else{
+                                                    echo __('尚未上傳','show-google-analytics-widget');
+                                                }
+                                                echo '<input type="hidden" name="'.SIG_GA_CONFIG.'[sig_ga_upload]" value="'.$config['sig_ga_upload'].'">';
 
-                    <tr valign="top">
-                        <th scope="row"><?php _e('獲取資料間隔：','show-google-analytics-widget')?></th>
-                        <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_cache]" value="<?php echo (empty(!$config['sig_ga_cache'])) ? esc_attr( $config['sig_ga_cache'] ) : SIG_GA_CACHE ; ?>"  onkeyup="value=value.replace(/[^\d.]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d.]/g,''))">秒
-                        <p class="description"><?php _e('預設時間為600秒，過短的時間有可能造成網頁開啟過於緩慢。','show-google-analytics-widget')?></p></td>
-                    </tr>
+                                            }else{
+                                                echo __('你可以先自行更改檔名再上傳。','show-google-analytics-widget');
+                                            }
+                                        ?></p>
+                                        <input type="file" class="regular-text" name="sig_ga_upload" /></td>
+                                </tr>
 
-                    <tr valign="top">
-                        <th scope="row"><?php _e('網站的 Profile ID：','show-google-analytics-widget')?></th>
-                        <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_id]" value="<?php echo esc_attr( $config['sig_ga_id'] ); ?>" />
-                        <p class="description"><?php _e('到你的 Google Analytics 中，切換到你的站台，在瀏覽器的URL應該是這樣子『https://www.google.com/analytics/web/#report/visitors-overview/a1234b23478970 p1234567/』，找最後 p 之後的數字1234567','show-google-analytics-widget')?></p></td>
-                    </tr>
+                                <tr valign="top">
+                                    <th scope="row"><?php _e('獲取資料間隔：','show-google-analytics-widget')?></th>
+                                    <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_cache]" value="<?php echo (empty(!$config['sig_ga_cache'])) ? esc_attr( $config['sig_ga_cache'] ) : SIG_GA_CACHE ; ?>"  onkeyup="value=value.replace(/[^\d.]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d.]/g,''))">秒
+                                    <p class="description"><?php _e('預設時間為600秒，過短的時間有可能造成網頁開啟過於緩慢。','show-google-analytics-widget')?></p></td>
+                                </tr>
 
-                    <tr valign="top">
-                        <th scope="row"><?php _e('使用非同步顯示數據：','show-google-analytics-widget')?></th>
-                        <td><input type="checkbox" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_ajax]" value="1" <?php echo ( !empty($config['sig_ga_ajax']) && $config['sig_ga_ajax']==1 ) ? 'checked="checked"':''; ?> /> <?php _e('若安裝了快取外掛，統計數字長時間都無法變動時，建議將此項目勾選','show-google-analytics-widget')?></td>
-                    </tr>
-<!--
-                    <tr valign="top">
-                        <th scope="row"><?php _e('文章顯示點閱數：','show-google-analytics-widget')?></th>
-                        <td><input type="checkbox" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_postview]" value="1" <?php echo ( !empty($config['sig_ga_postview']) && $config['sig_ga_postview']==1 ) ? 'checked="checked"':''; ?> />顯示在文章下方<p></p></td>
-                    </tr>
--->
+                                <tr valign="top">
+                                    <th scope="row"><?php _e('網站的 Profile ID：','show-google-analytics-widget')?></th>
+                                    <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_id]" value="<?php echo esc_attr( $config['sig_ga_id'] ); ?>" />
+                                    <p class="description"><?php _e('到你的 Google Analytics 中，切換到你的站台，在瀏覽器的URL應該是這樣子『https://www.google.com/analytics/web/#report/visitors-overview/a1234b23478970 p1234567/』，找最後 p 之後的數字1234567','show-google-analytics-widget')?></p></td>
+                                </tr>
 
-                </table>
-                <?php submit_button(); ?>
+                                <tr valign="top">
+                                    <th scope="row"><?php _e('使用非同步顯示數據：','show-google-analytics-widget')?></th>
+                                    <td><input type="checkbox" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_ajax]" value="1" <?php echo ( !empty($config['sig_ga_ajax']) && $config['sig_ga_ajax']==1 ) ? 'checked="checked"':''; ?> /> <?php _e('若安裝了快取外掛，統計數字長時間都無法變動時，建議將此項目勾選','show-google-analytics-widget')?></td>
+                                </tr>
 
-                <h2><?php echo __('補充說明','show-google-analytics-widget')?></h2>
-                <ol>
-                    <li>請注意！本外掛使用 Google Analytics API(V3)，每日有呼叫次數限制，超過的請求次數，您可能需要負擔費用。(您可增加資料重新獲取的間隔秒數來避免超出呼叫次數)</li>
-                    <li><?php
-                        echo __('日期計算標準：','show-google-analytics-widget');
-                        echo __('今日日期：','show-google-analytics-widget') . current_time('Y-m-d');
-                        echo __('，總計累計至：','show-google-analytics-widget') . current_time('Y-m-d');
-                ?></li>
-                    <li><?php echo __('文章點閱次數的短代碼寫法：','show-google-analytics-widget')?>[sig_post_pv label="瀏覽："]</li>
-                </ol>
+                            </table>
+                            <?php submit_button(); ?>
 
-                <?php if($alert) echo __('(第一次設定，以上資料來自小工具設定，請按下儲存按鈕做轉換儲存。)','show-google-analytics-widget')?>
-            </form>
+
+                            <?php if($alert) echo __('(第一次設定，以上資料來自小工具設定，請按下儲存按鈕做轉換儲存。)','show-google-analytics-widget')?>
+                        </form>
+                    </div>
+                    <!-- //left -->
+                    <!-- right -->
+                    <div class="col-12 col-sm-4">
+                        <div style="background-color: #fff;padding: 15px; line-height: 1.8;">
+                            <h2><?php echo __('補充說明','show-google-analytics-widget')?></h2>
+                            <ol style="font-size: 15px;">
+                                <li>外掛使用教學：在這推薦Gill吉兒的文章，步驟非常詳細。 <a href="https://reurl.cc/pm5ERZ" target="_blank">https://reurl.cc/pm5ERZ</a></li>
+                                <li>請注意！本外掛使用 Google Analytics API(V3)，每日有呼叫次數限制，超過的請求次數，您可能需要負擔費用。(您可增加資料重新獲取的間隔秒數來避免超出呼叫次數)</li>
+                                <li><?php echo __('文章點閱次數的短代碼寫法：','show-google-analytics-widget')?><br>[sig_post_pv label="瀏覽："]</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <!-- //right -->
+                </div>
+            </div>
         </div>
         <?php
     }
@@ -565,14 +604,13 @@ class SigGaWidget{
 
             $sig_ga_id = $config['sig_ga_id'];
 
-            $sig_ga_type = ( isset($_GET['t']) ) ? $_GET['t']:1;
-            $sig_ga_nums = ( isset($_GET['n']) ) ? $_GET['n']:0;
+            $widget_id = ( isset($_GET['id']) && !empty($_GET['id']) ) ? $_GET['id'] : '';
 
             //-----today------
-            echo $this->show_today_views($sig_ga_id, $sig_ga_type);
+            echo $this->show_today_views($sig_ga_id, $widget_id);
 
             //------ all --------
-            echo $this->show_total_views($sig_ga_id, $sig_ga_type, $sig_ga_nums);
+            echo $this->show_total_views($sig_ga_id, $widget_id);
 
         }
         wp_die();
