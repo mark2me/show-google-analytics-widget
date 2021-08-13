@@ -10,7 +10,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 $ga = $this->call_ga_api([
     array('year'),
     array('pageviews','visits'),
-    'year'
+    'year',
+    '',
+    (date('Y')-5).'-01-01',
+    current_time('Y-m-d'),
+    1,
+    10
+
 ]);
 
 if( !is_object($ga) ) {

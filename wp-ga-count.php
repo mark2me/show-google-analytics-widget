@@ -3,7 +3,7 @@
  * Plugin Name: Show Google Analytics widget
  * Plugin URI:  https://github.com/mark2me/show-google-analytics-widget
  * Description: 利用 Google Analytics 資料來顯示網站的今日參觀人數和總參觀人數小工具
- * Version:     1.4.3
+ * Version:     1.4.4
  * Author:      Simon Chuang
  * Author URI:  https://github.com/mark2me
  * License:     GPLv2
@@ -523,7 +523,7 @@ class SigGaWidget{
                             <table class="form-table">
                                 <tr valign="top">
                                     <th scope="row"><?php _e('GA授權服務帳號：','show-google-analytics-widget')?></th>
-                                    <td><input type="text" class="regular-text" name="<?php echo SIG_GA_CONFIG?>[sig_ga_account]" value="<?php echo esc_attr( $config['sig_ga_account'] ); ?>" />
+                                    <td><input type="text" class="regular-text" name="<?php echo SIG_GA_CONFIG?>[sig_ga_account]" value="<?php if(!empty($config['sig_ga_account'])) echo esc_attr( $config['sig_ga_account'] ); ?>" />
                                     <p class="description">到 <a href="https://console.developers.google.com/" target="_blank">Google Developers</a> 申請，並下載p12檔案。再把這個服務帳號加入 Google Analytics 你的站台管理員，權限要可檢視和分析。 </p></td>
                                 </tr>
 
@@ -547,13 +547,13 @@ class SigGaWidget{
 
                                 <tr valign="top">
                                     <th scope="row"><?php _e('獲取資料間隔：','show-google-analytics-widget')?></th>
-                                    <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_cache]" value="<?php echo (empty(!$config['sig_ga_cache'])) ? esc_attr( $config['sig_ga_cache'] ) : SIG_GA_CACHE ; ?>"  onkeyup="value=value.replace(/[^\d.]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d.]/g,''))">秒
+                                    <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_cache]" value="<?php echo (!empty($config['sig_ga_cache'])) ? esc_attr( $config['sig_ga_cache'] ) : SIG_GA_CACHE ; ?>"  onkeyup="value=value.replace(/[^\d.]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d.]/g,''))">秒
                                     <p class="description"><?php _e('預設時間為600秒，過短的時間有可能造成網頁開啟過於緩慢。','show-google-analytics-widget')?></p></td>
                                 </tr>
 
                                 <tr valign="top">
                                     <th scope="row"><?php _e('網站的 Profile ID：','show-google-analytics-widget')?></th>
-                                    <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_id]" value="<?php echo esc_attr( $config['sig_ga_id'] ); ?>" />
+                                    <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_id]" value="<?php if(!empty($config['sig_ga_id'])) echo esc_attr( $config['sig_ga_id'] ); ?>" />
                                     <p class="description"><?php _e('到你的 Google Analytics 中，切換到你的站台，在瀏覽器的URL應該是這樣子『https://www.google.com/analytics/web/#report/visitors-overview/a1234b23478970 p1234567/』，找最後 p 之後的數字1234567','show-google-analytics-widget')?></p></td>
                                 </tr>
 

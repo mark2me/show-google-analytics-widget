@@ -14,7 +14,7 @@ $ga = $this->call_ga_api([
     current_time('Y-m-01'),
     current_time('Y-m-d'),
     1,
-    100
+    31
 ]);
 
 if( !is_object($ga) ) {
