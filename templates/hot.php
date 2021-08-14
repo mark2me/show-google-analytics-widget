@@ -1,30 +1,21 @@
 <?php
-
-/* 今日文章點擊排名 */
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+//if ( false === ($ga_hot_data = get_transient('ga_hot_data')) ) {
+    $ga_hot_data = Sig_Ga_Data::get_hot_data();
+//    set_transient('ga_hot_data', $ga_hot_data, 60*60);
+//}
 
-$ga = $this->call_ga_api([
-    array('pageTitle','pagepath'),
-    array('pageviews'),
-    '-pageviews',
-    null,
-    current_time('Y-m-d'),
-    current_time('Y-m-d'),
-    1,
-    10
-]);
-
-
-if( !is_object($ga) ) {
-    echo '<p>' . __('相關訊息：','show-google-analytics-widget') . '<br>'.$ga.'</p>';
+if( !is_array($ga_hot_data) ) {
+    echo '<p>' . __('相關訊息：','show-google-analytics-widget') . '<br>'.$ga_hot_data.'</p>';
 } else {
 ?>
     <div>
-        <h3><?php _e('今日熱門文章前10名','show-google-analytics-widget')?></h3>
+        <h3><?php _e('昨日熱門文章前10名','show-google-analytics-widget');
+            if(!empty($ga_hot_data['endDate'])) echo " ({$ga_hot_data['endDate']})";
+        ?></h3>
         <table class="wp-list-table widefat striped table-view-list">
             <thead>
                 <tr>
@@ -35,9 +26,13 @@ if( !is_object($ga) ) {
             </thead>
             <tbody>
         <?php
-        foreach( $ga->getResults() as $k => $result) {
+        if( !empty($ga_hot_data['results']) && count($ga_hot_data['results'])>0 ){
+            foreach( $ga_hot_data['results'] as $k => $rs) {
 
-            echo '<tr><td>'.($k+1).'</td><td><a href="'.$result->getPagepath().'">'.$result->getPagetitle().'</a></td><td>'.$result->getPageviews().'</td></tr>';
+                echo '<tr><td>'.($k+1).'</td><td><a href="'.$rs['pagepath'].'">'.$rs['pageTitle'].'</a></td><td>'.$rs['pageviews'].'</td></tr>';
+            }
+        }else{
+            echo '<tr><td colspan="3">'. __('No Data','show-google-analytics-widget') .'</td></tr>';
         }
 
         ?>

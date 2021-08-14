@@ -1,39 +1,39 @@
 <?php
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( false === ($ga_month_data = get_transient('ga_month_data')) ) {
+    $ga_month_data = Sig_Ga_Data::get_month_data();
+    set_transient('ga_month_data', $ga_month_data, 60*60);
+}
 
-
-$ga = $this->call_ga_api([
-    array('date'),
-    array('pageviews','visits'),
-    'date',
-    '',
-    current_time('Y-m-01'),
-    current_time('Y-m-d'),
-    1,
-    31
-]);
-
-if( !is_object($ga) ) {
-    echo '<p>' . __('相關訊息：','show-google-analytics-widget') . '<br>'.$ga.'</p>';
+if( !is_array($ga_month_data) ) {
+    echo '<p>' . __('相關訊息：','show-google-analytics-widget') . '<br>'.$ga_month_data.'</p>';
 } else {
-?>
 
-    <h3><?php echo __('本月份統計：','show-google-analytics-widget') . current_time('Y-m-01') . ' ~ ' . current_time('Y-m-d')?></h3>
+?>
+    <h3><?php
+        echo __('本月份統計：','show-google-analytics-widget');
+        if(!empty($ga_month_data['startDate']) && !empty($ga_month_data['endDate'])){
+            echo "{$ga_month_data['startDate']} ~ {$ga_month_data['endDate']}";
+        }
+    ?></h3>
 
     <div id="mychart" style="height: 250px;"></div>
 
     <table class="">
     <tr>
-        <th align="left"><?php _e('Pageviews','show-google-analytics-widget')?></th>
-        <td><?php echo number_format($ga->getPageviews()) ?>
+        <th align="left"><?php _e('Pageviews:','show-google-analytics-widget')?></th>
+        <td><?php if(!empty($ga_month_data['pageViews'])) echo number_format($ga_month_data['pageViews']) ?>
     </tr>
     <tr>
-        <th align="left"><?php _e('Visits','show-google-analytics-widget')?></th>
-        <td><?php echo number_format($ga->getVisits()) ?></td>
+        <th align="left"><?php _e('Visits:','show-google-analytics-widget')?></th>
+        <td><?php if(!empty($ga_month_data['visits'])) echo number_format($ga_month_data['visits']) ?></td>
+    </tr>
+    <tr>
+        <th align="left"><?php _e('Data Time:','show-google-analytics-widget')?></th>
+        <td><?php if(!empty($ga_month_data['time'])) echo $ga_month_data['time']; ?></td>
     </tr>
     </table>
 
@@ -42,16 +42,20 @@ if( !is_object($ga) ) {
         element: 'mychart',
         data: [
     <?php
-        foreach( $ga->getResults() as $k => $result) {
-            if($k>0) echo ',';
-            echo "{ x:'".substr($result,0,4).'-'.substr($result,4,2).'-'.substr($result,6)."', a: ".$result->getPageviews().", b: ".$result->getVisits()." }";
+        if( !empty($ga_month_data['results']) ){
+            foreach( $ga_month_data['results'] as $k => $rs) {
+                if($k>0) echo ',';
+                $d = substr($rs['date'],0,4)."-".substr($rs['date'],4,2)."-".substr($rs['date'],6,2);
+                echo "{ x:'{$d}', a:{$rs['pageviews']}, b:{$rs['visits']} }";
+            }
         }
     ?>
         ],
         xkey: 'x',
         ykeys: ['a','b'],
         labels: ['Pageview','Visits'],
-        fillOpacity: 1.0
+        fillOpacity: 1.0,
+        resize: true
     });
     </script>
 
