@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( false === ($ga_month_data = get_transient('ga_month_data')) ) {
     $ga_month_data = Sig_Ga_Data::get_month_data();
-    set_transient('ga_month_data', $ga_month_data, 60*60);
+    set_transient('ga_month_data', $ga_month_data, 60*60*24);    // day
 }
 
 if( !is_array($ga_month_data) ) {

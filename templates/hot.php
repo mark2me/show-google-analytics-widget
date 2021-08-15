@@ -3,10 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-//if ( false === ($ga_hot_data = get_transient('ga_hot_data')) ) {
-    $ga_hot_data = Sig_Ga_Data::get_hot_data();
-//    set_transient('ga_hot_data', $ga_hot_data, 60*60);
-//}
+$ga_hot_data = Sig_Ga_Data::get_hot_data();
 
 if( !is_array($ga_hot_data) ) {
     echo '<p>' . __('相關訊息：','show-google-analytics-widget') . '<br>'.$ga_hot_data.'</p>';

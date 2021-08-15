@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( false === ($ga_total_data = get_transient('ga_total_data')) ) {
     $ga_total_data = Sig_Ga_Data::get_total_data();
-    set_transient('ga_total_data', $ga_total_data, 60*60);
+    set_transient('ga_total_data', $ga_total_data, 60*60*24*7);  // week
 }
 
 if( !is_array($ga_total_data) ) {

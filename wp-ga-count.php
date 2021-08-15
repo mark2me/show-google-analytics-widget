@@ -3,7 +3,7 @@
  * Plugin Name: Show Google Analytics widget
  * Plugin URI:  https://github.com/mark2me/show-google-analytics-widget
  * Description: 利用 Google Analytics 資料來顯示網站的今日參觀人數和總參觀人數小工具
- * Version:     1.4.4
+ * Version:     1.4.5
  * Author:      Simon Chuang
  * Author URI:  https://github.com/mark2me
  * License:     GPLv2
@@ -13,15 +13,13 @@
 
 define( 'SIG_GA_PLUGIN_NAME', 'wp-show-ga-widget' );
 define( 'SIG_GA_DIR', dirname(__FILE__) );
-define( 'SIG_GA_WIDGET', 'sig-show-pageview');    // widget dom id
 define( 'SIG_GA_CACHE', 600);                     // cache time
 define( 'SIG_GA_CONFIG', 'sig-ga-config');
-define( 'SIG_GA_POST_VIEW', 'views');
+define( 'SIG_GA_VIEW_WIDGET', 'sig-show-pageview');    // widget dom id
+define( 'SIG_GA_HOT_WIDGET', 'sig-show-hot');
 
 
 load_plugin_textdomain( SIG_GA_PLUGIN_NAME , false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
-
-
 
 
 new SigGaWidget();
@@ -46,8 +44,8 @@ class SigGaWidget{
         add_shortcode( 'sig_post_pv', array($this,'shortcode_post_pageviews') );
         add_filter( 'the_content', array($this,'add_view_in_the_content'), 10 );
 
-        add_action( 'wp_ajax_'.SIG_GA_WIDGET, array($this,'wpajax_get_pv') );
-        add_action( 'wp_ajax_nopriv_'.SIG_GA_WIDGET, array($this,'wpajax_get_pv') );
+        add_action( 'wp_ajax_'.SIG_GA_VIEW_WIDGET, array($this,'wpajax_get_pv') );
+        add_action( 'wp_ajax_nopriv_'.SIG_GA_VIEW_WIDGET, array($this,'wpajax_get_pv') );
 
 
     }
@@ -59,7 +57,8 @@ class SigGaWidget{
     }
 
     public function register_ga_widget() {
-        register_widget( 'Sig_Ga_Count_Widget' );
+        register_widget( 'Sig_Ga_Views_Widget' );
+        register_widget( 'Sig_Ga_Hot_Widget' );
     }
 
 
@@ -93,6 +92,8 @@ class SigGaWidget{
 
     ?>
             <div class="container-fluid" style="margin-top: 15px;">
+                <h1><?php _e('本月份GA資訊','show-google-analytics-widget')?></h1>
+                <hr>
                 <div class="row">
                     <div class="col-12 col-sm-6">
                         <div style="background-color: #fff;padding: 20px;"><?php require_once(SIG_GA_DIR.'/templates/month.php'); ?></div>
@@ -199,7 +200,7 @@ class SigGaWidget{
     }
 
 
-    public function show_widget_views($widget_id=''){
+    public function show_ga_views_widget($widget_id=''){
 
         $config = $this->get_ga_config();
         $expire = (!empty($config['sig_ga_cache']) and $config['sig_ga_cache'] > 0) ? $config['sig_ga_cache']:SIG_GA_CACHE;
@@ -218,7 +219,7 @@ class SigGaWidget{
             $arr = explode("-",$widget_id);
             $widget_id = end($arr);
 
-            $widget = get_option('widget_'.SIG_GA_WIDGET);
+            $widget = get_option('widget_'.SIG_GA_VIEW_WIDGET);
             if( isset($widget[$widget_id]['sig_ga_type']) ) $sig_ga_type = $widget[$widget_id]['sig_ga_type'];
             if( isset($widget[$widget_id]['sig_ga_nums']) ) $sig_ga_nums = $widget[$widget_id]['sig_ga_nums'];
         }
@@ -290,7 +291,7 @@ class SigGaWidget{
         $alert = false;
 
         if (empty($config)) {
-            $old = get_option('widget_'.SIG_GA_WIDGET);
+            $old = get_option('widget_'.SIG_GA_VIEW_WIDGET);
             if( !empty($old) and count($old) > 1){
                 $config = array_shift($old);
                 if(isset($config['sig_ga_account'])) $alert = true;
@@ -393,7 +394,7 @@ class SigGaWidget{
 
             $widget_id = ( isset($_GET['id']) && !empty($_GET['id']) ) ? $_GET['id'] : '';
 
-            echo $this->show_widget_views($widget_id);
+            echo $this->show_ga_views_widget($widget_id);
 
         }
         wp_die();
@@ -414,13 +415,13 @@ class SigGaWidget{
 
         if( $post_id > 0 ) {
 
-            $key = 'sig_post_view_'.$post_id;
+            $key = 'ga_post_view_'.$post_id;
             $post_view = get_transient($key);
 
             if( $post_view === false ){
 
                 $post_view = Sig_Ga_Data::get_post_view_data();
-                set_transient($key, $post_view, 60*60 );
+                set_transient($key, $post_view, 60*60*1 );  // hour
             }
 
         }
