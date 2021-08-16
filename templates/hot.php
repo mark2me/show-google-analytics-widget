@@ -10,7 +10,7 @@ if( !is_array($ga_hot_data) ) {
 } else {
 ?>
     <div>
-        <h3><?php _e('昨日熱門文章前10名','show-google-analytics-widget');
+        <h3><?php _e('今日熱門文章前10名','show-google-analytics-widget');
             if(!empty($ga_hot_data['endDate'])) echo " ({$ga_hot_data['endDate']})";
         ?></h3>
         <table class="wp-list-table widefat striped table-view-list">

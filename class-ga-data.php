@@ -170,7 +170,9 @@ class Sig_Ga_Data {
 
     }
 
-    public static function get_hot_data($nums=0){
+    public static function get_hot_data($nums=0,$day=0){
+
+        $d = ($day==0) ? date('Y-m-d') : date('Y-m-d',strtotime("-1 days"));
 
         $sig = new SigGaWidget();
         $ga = $sig->call_ga_api([
@@ -178,8 +180,8 @@ class Sig_Ga_Data {
             array('pageviews'),
             '-pageviews',
             null,
-            date('Y-m-d',strtotime("-1 days")),
-            date('Y-m-d',strtotime("-1 days")),
+            $d,
+            $d,
             1,
             ($nums>0) ? $nums:10
         ]);

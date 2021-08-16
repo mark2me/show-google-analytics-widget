@@ -28,7 +28,7 @@ class  Sig_Ga_Views_Widget extends WP_Widget {
     ?>
         <p>
             <label for="<?php echo $this->get_field_id('sig_ga_title'); ?>"><?php _e('自定標題：','show-google-analytics-widget')?></label>
-            <input class="widefat" type="text" id="<?php echo $this->get_field_id('sig_ga_title'); ?>" name="<?php echo $this->get_field_name('sig_ga_title'); ?>" value="<?php echo $instance['sig_ga_title']; ?>">
+            <input class="widefat" type="text" id="<?php echo $this->get_field_id('sig_ga_title'); ?>" name="<?php echo $this->get_field_name('sig_ga_title'); ?>" value="<?php if(!empty($instance['sig_ga_title'])) echo esc_attr($instance['sig_ga_title']); ?>">
         </p>
         <p>
             <label for="<?php echo $this->get_field_id('sig_ga_type'); ?>"><?php _e('顯示類型：','show-google-analytics-widget')?></label>
@@ -39,7 +39,7 @@ class  Sig_Ga_Views_Widget extends WP_Widget {
         </p>
         <p>
             <label for="<?php echo $this->get_field_id('sig_ga_nums'); ?>"><?php _e('調整計次：','show-google-analytics-widget')?></label>
-            <input class="widefat" placeholder="<?php _e('輸入起跳的數字','show-google-analytics-widget')?>" type="text" id="<?php echo $this->get_field_id('sig_ga_nums'); ?>" name="<?php echo $this->get_field_name('sig_ga_nums'); ?>" value="<?php echo $instance['sig_ga_nums']; ?>"  onkeyup="value=value.replace(/[^0-9]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^0-9]/g,''))">
+            <input class="widefat" placeholder="<?php _e('輸入起跳的數字','show-google-analytics-widget')?>" type="number" id="<?php echo $this->get_field_id('sig_ga_nums'); ?>" name="<?php echo $this->get_field_name('sig_ga_nums'); ?>" value="<?php if(isset($instance['sig_ga_nums'])) echo esc_attr($instance['sig_ga_nums']); ?>"  onkeyup="value=value.replace(/[^0-9]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^0-9]/g,''))">
         </p>
 
     <?php
@@ -125,9 +125,13 @@ class Sig_Ga_Hot_Widget extends WP_Widget {
         $sig_ga_hot_cache   = $instance['sig_ga_hot_cache'];
 
 
-        if( false === $ga_hot_data = get_transient('ga_hot_data') ){
+        if( !empty($sig_ga_hot_cache) && $sig_ga_hot_cache > 0 ){
+            if( false === $ga_hot_data = get_transient('ga_hot_data') ){
+                $ga_hot_data = Sig_Ga_Data::get_hot_data($sig_ga_hot_nums,$sig_ga_hot_day);
+                if($ga_hot_data!==false) set_transient('ga_hot_data', $ga_hot_data, $sig_ga_hot_cache);
+            }
+        }else{
             $ga_hot_data = Sig_Ga_Data::get_hot_data($sig_ga_hot_nums,$sig_ga_hot_day);
-            if($ga_hot_data!==false) set_transient('ga_hot_data', $ga_hot_data, $sig_ga_hot_cache);
         }
 
         $post = '';
@@ -165,22 +169,22 @@ class Sig_Ga_Hot_Widget extends WP_Widget {
         ?>
         <p>
             <label for="<?php echo $this->get_field_id('sig_ga_hot_title'); ?>"><?php _e('自定標題：','show-google-analytics-widget')?></label>
-            <input class="widefat" type="text" id="<?php echo $this->get_field_id('sig_ga_hot_title'); ?>" name="<?php echo $this->get_field_name('sig_ga_hot_title'); ?>" value="<?php echo $instance['sig_ga_hot_title']; ?>">
+            <input class="widefat" type="text" id="<?php echo $this->get_field_id('sig_ga_hot_title'); ?>" name="<?php echo $this->get_field_name('sig_ga_hot_title'); ?>" value="<?php if(!empty($instance['sig_ga_hot_title'])) echo esc_attr($instance['sig_ga_hot_title']); ?>">
         </p>
         <p>
-            <label for="<?php echo $this->get_field_id('sig_ga_hot_day'); ?>"><?php _e('今日或昨日：','show-google-analytics-widget')?></label>
+            <label for="<?php echo $this->get_field_id('sig_ga_hot_day'); ?>"><?php _e('選定日期：','show-google-analytics-widget')?></label>
             <select class="" size="1" id="<?php echo $this->get_field_id('sig_ga_hot_day'); ?>" name="<?php echo $this->get_field_name('sig_ga_hot_day'); ?>">
-                <option value="0" <?php if($instance['sig_ga_hot_day']==0) echo 'selected'?>><?php _e('Today','show-google-analytics-widget')?></option>
-                <option value="1" <?php if($instance['sig_ga_hot_day']==1) echo 'selected'?>><?php _e('Yesterday','show-google-analytics-widget')?></option>
+                <option value="0" <?php if($instance['sig_ga_hot_day']==0) echo 'selected'?>><?php _e('今天','show-google-analytics-widget')?></option>
+                <option value="1" <?php if($instance['sig_ga_hot_day']==1) echo 'selected'?>><?php _e('昨天','show-google-analytics-widget')?></option>
             </select>
         </p>
         <p>
             <label for="<?php echo $this->get_field_id('sig_ga_hot_nums'); ?>"><?php _e('顯示文章數：','show-google-analytics-widget')?></label>
-            <input class="" type="text" id="<?php echo $this->get_field_id('sig_ga_hot_nums'); ?>" name="<?php echo $this->get_field_name('sig_ga_hot_nums'); ?>" value="<?php echo $instance['sig_ga_hot_nums']; ?>"  onkeyup="value=value.replace(/[^0-9]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^0-9]/g,''))">
+            <input class="" type="number" id="<?php echo $this->get_field_id('sig_ga_hot_nums'); ?>" name="<?php echo $this->get_field_name('sig_ga_hot_nums'); ?>" value="<?php if(isset($instance['sig_ga_hot_nums']))  echo esc_attr($instance['sig_ga_hot_nums']); ?>"  onkeyup="value=value.replace(/[^0-9]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^0-9]/g,''))" min="1">
         </p>
         <p>
             <label for="<?php echo $this->get_field_id('sig_ga_hot_cache'); ?>"><?php _e('快取時間：','show-google-analytics-widget')?></label>
-            <input class="" type="text" id="<?php echo $this->get_field_id('sig_ga_hot_cache'); ?>" name="<?php echo $this->get_field_name('sig_ga_hot_cache'); ?>" value="<?php echo $instance['sig_ga_hot_cache']; ?>"> <?php _e('秒 (0表示不做快取)','show-google-analytics-widget')?>
+            <input class="" type="number" id="<?php echo $this->get_field_id('sig_ga_hot_cache'); ?>" name="<?php echo $this->get_field_name('sig_ga_hot_cache'); ?>" value="<?php if(isset($instance['sig_ga_hot_cache'])) echo esc_attr($instance['sig_ga_hot_cache']); ?>" min="0"> <?php _e('秒 (0表示不做快取)','show-google-analytics-widget')?>
         </p>
 
         <?php

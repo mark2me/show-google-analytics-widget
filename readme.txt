@@ -4,7 +4,7 @@ Tags: google, analytics, ga, google analytics, tracking, pixnet
 Requires at least: 4.0
 Tested up to: 5.8
 Requires PHP: 7.2
-Stable tag: 1.4.4
+Stable tag: 1.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,6 +33,10 @@ e.g.
 2. Show google analytics visit data for this month.
 
 == Changelog ==
+
+= 1.5 =
+* 增加小工具可顯示熱門文章
+* 其他功能修正
 
 = 1.4 =
 * 日期計算改採後台設定的時區

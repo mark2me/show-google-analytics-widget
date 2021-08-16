@@ -3,7 +3,7 @@
  * Plugin Name: Show Google Analytics widget
  * Plugin URI:  https://github.com/mark2me/show-google-analytics-widget
  * Description: 利用 Google Analytics 資料來顯示網站的今日參觀人數和總參觀人數小工具
- * Version:     1.4.5
+ * Version:     1.5
  * Author:      Simon Chuang
  * Author URI:  https://github.com/mark2me
  * License:     GPLv2
