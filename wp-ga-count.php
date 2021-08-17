@@ -3,7 +3,7 @@
  * Plugin Name: Show Google Analytics widget
  * Plugin URI:  https://github.com/mark2me/show-google-analytics-widget
  * Description: 利用 Google Analytics 資料來顯示網站的今日參觀人數和總參觀人數小工具
- * Version:     1.5
+ * Version:     1.5.1
  * Author:      Simon Chuang
  * Author URI:  https://github.com/mark2me
  * License:     GPLv2
@@ -43,9 +43,8 @@ class SigGaWidget{
 
         add_shortcode( 'sig_post_pv', array($this,'shortcode_post_pageviews') );
 
-        add_action( 'wp_ajax_'.SIG_GA_VIEW_WIDGET, array($this,'wpajax_get_data') );
-        add_action( 'wp_ajax_nopriv_'.SIG_GA_VIEW_WIDGET, array($this,'wpajax_get_data') );
-
+        add_action( 'wp_ajax_sig-ga-widget', array($this,'wpajax_get_data') );
+        add_action( 'wp_ajax_nopriv_sig-ga-widget', array($this,'wpajax_get_data') );
 
     }
 
@@ -262,7 +261,7 @@ class SigGaWidget{
             //load config
             $arr = explode("-",$widget_id);
             $wid = end($arr);
-            $widget = get_option('widget_'.SIG_GA_VIEW_WIDGET);
+            $widget = get_option('widget_'.SIG_GA_HOT_WIDGET);
 
             $sig_ga_hot_day = ( isset($widget[$wid]['sig_ga_hot_day']) ) ? $widget[$wid]['sig_ga_hot_day'] : 0;
             $sig_ga_hot_nums = ( isset($widget[$wid]['sig_ga_hot_nums']) ) ? $widget[$wid]['sig_ga_hot_nums'] : 5;
@@ -273,7 +272,7 @@ class SigGaWidget{
                 $hot_data = Sig_Ga_Data::get_hot_data($sig_ga_hot_nums,$sig_ga_hot_day);
             }else{
                 if( false === $hot_data = get_transient('ga_hot_data') ){
-                    $hot_data = Sig_Ga_Data::get_hot_data($sig_ga_hot_nums,$sig_ga_hot_day);
+                    $hot_data = Sig_Ga_Data::get_hot_data(($sig_ga_hot_nums*2),$sig_ga_hot_day);
                     if($hot_data!==false) set_transient('ga_hot_data', $hot_data, $sig_ga_hot_cache);
                 }
             }
@@ -282,8 +281,13 @@ class SigGaWidget{
 
             if( !empty($hot_data['results']) && count($hot_data['results'])>0 ){
                 $post .= '<ul data-time="'.((!empty($hot_data['time'])) ? $hot_data['time']:'').'">';
+                $i = 0;
                 foreach( $hot_data['results'] as $k => $rs) {
-                    $post .= "<li><a href=\"{$rs['pagepath']}\">{$rs['pageTitle']}</a></li>";
+                    if( $rs['pagepath'] !== '/' && substr($rs['pagepath'],0,9) !== '/wp-admin' && substr($rs['pagepath'],0,5) !== '/404/' ){
+                        $post .= "<li><a href=\"{$rs['pagepath']}\">{$rs['pageTitle']}</a></li>";
+                        $i+=1;
+                        if( $i >= $sig_ga_hot_nums ) break;
+                    }
                 }
                 $post .= '</ul>';
             }else{
@@ -327,15 +331,6 @@ class SigGaWidget{
     public function ga_settings_page() {
 
         $config = $this->get_ga_config();
-        $alert = false;
-
-        if (empty($config)) {
-            $old = get_option('widget_'.SIG_GA_VIEW_WIDGET);
-            if( !empty($old) and count($old) > 1){
-                $config = array_shift($old);
-                if(isset($config['sig_ga_account'])) $alert = true;
-            }
-        }
 
         ?>
         <div class="wrap">
@@ -382,8 +377,6 @@ class SigGaWidget{
                             </table>
                             <?php submit_button(); ?>
 
-
-                            <?php if($alert) echo __('(第一次設定，以上資料來自小工具設定，請按下儲存按鈕做轉換儲存。)','show-google-analytics-widget')?>
                         </form>
                     </div>
                     <!-- //left -->

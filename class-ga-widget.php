@@ -34,7 +34,7 @@ class  Sig_Ga_Views_Widget extends WP_Widget {
 
             $content .= '<div id="ga-box-'.$widget_id.'"><img src="'. plugin_dir_url(__FILE__) .'assets/img/loading.gif"></div>';
             $content .= $after_widget;
-            $content .= '<script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action='.SIG_GA_VIEW_WIDGET.'&type=views&id='.$widget_id.'&t='.time().'\', function(data) {$(\'#ga-box-'.$widget_id.'\').html(data);    });});</script>';
+            $content .= '<script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action=sig-ga-widget&type=views&id='.$widget_id.'&t='.time().'\', function(data) {$(\'#ga-box-'.$widget_id.'\').html(data);    });});</script>';
         }else{
             $obj = new SigGaWidget();
             $content .= $obj->show_ga_views_widget($widget_id);
@@ -144,7 +144,7 @@ class Sig_Ga_Hot_Widget extends WP_Widget {
 
             $content .= '<div id="ga-box-'.$widget_id.'"><img src="'. plugin_dir_url(__FILE__) .'assets/img/loading.gif"></div>';
             $content .= $after_widget;
-            $content .= '<script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action='.SIG_GA_VIEW_WIDGET.'&type=hot&id='.$widget_id.'&t='.time().'\', function(data) {$(\'#ga-box-'.$widget_id.'\').html(data);    });});</script>';
+            $content .= '<script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action=sig-ga-widget&type=hot&id='.$widget_id.'&t='.time().'\', function(data) {$(\'#ga-box-'.$widget_id.'\').html(data);    });});</script>';
         }else{
             $obj = new SigGaWidget();
             $content .= $obj->show_ga_hot_widget($widget_id);
