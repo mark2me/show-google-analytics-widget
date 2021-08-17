@@ -7,15 +7,15 @@
  * Author:      Simon Chuang
  * Author URI:  https://github.com/mark2me
  * License:     GPLv2
- * Text Domain: wp-show-ga-widget
+ * Text Domain: show-google-analytics-widget
  * Domain Path: /languages
  */
 
 define( 'SIG_GA_PLUGIN_NAME', 'wp-show-ga-widget' );
 define( 'SIG_GA_DIR', dirname(__FILE__) );
-define( 'SIG_GA_CACHE', 600);                     // cache time
+define( 'SIG_GA_CACHE', 600);
 define( 'SIG_GA_CONFIG', 'sig-ga-config');
-define( 'SIG_GA_VIEW_WIDGET', 'sig-show-pageview');    // widget dom id
+define( 'SIG_GA_VIEW_WIDGET', 'sig-show-pageview');
 define( 'SIG_GA_HOT_WIDGET', 'sig-show-hot');
 
 
@@ -42,10 +42,9 @@ class SigGaWidget{
         add_filter( 'upload_mimes', array($this,'custom_upload_mimes') );
 
         add_shortcode( 'sig_post_pv', array($this,'shortcode_post_pageviews') );
-        add_filter( 'the_content', array($this,'add_view_in_the_content'), 10 );
 
-        add_action( 'wp_ajax_'.SIG_GA_VIEW_WIDGET, array($this,'wpajax_get_pv') );
-        add_action( 'wp_ajax_nopriv_'.SIG_GA_VIEW_WIDGET, array($this,'wpajax_get_pv') );
+        add_action( 'wp_ajax_'.SIG_GA_VIEW_WIDGET, array($this,'wpajax_get_data') );
+        add_action( 'wp_ajax_nopriv_'.SIG_GA_VIEW_WIDGET, array($this,'wpajax_get_data') );
 
 
     }
@@ -199,60 +198,100 @@ class SigGaWidget{
         }
     }
 
-
     public function show_ga_views_widget($widget_id=''){
 
-        $config = $this->get_ga_config();
-        $expire = (!empty($config['sig_ga_cache']) and $config['sig_ga_cache'] > 0) ? $config['sig_ga_cache']:SIG_GA_CACHE;
+        if( empty($widget_id) ){
+            return '(No ID)';
+        }else{
 
-        if( false === $today_data = get_transient('ga_today_data') ){
-            $today_data = Sig_Ga_Data::get_today_data();
-            if($today_data!==false) set_transient('ga_today_data', $today_data, $expire);
-        }
-
-        $html = '';
-
-        $sig_ga_type = 0;
-        $sig_ga_nums = 0;
-
-        if( !empty($widget_id) ){
+            //load config
             $arr = explode("-",$widget_id);
-            $widget_id = end($arr);
-
+            $wid = end($arr);
             $widget = get_option('widget_'.SIG_GA_VIEW_WIDGET);
-            if( isset($widget[$widget_id]['sig_ga_type']) ) $sig_ga_type = $widget[$widget_id]['sig_ga_type'];
-            if( isset($widget[$widget_id]['sig_ga_nums']) ) $sig_ga_nums = $widget[$widget_id]['sig_ga_nums'];
+
+            $sig_ga_type = ( isset($widget[$wid]['sig_ga_type']) ) ? $widget[$wid]['sig_ga_type'] : 0;
+            $sig_ga_nums = ( isset($widget[$wid]['sig_ga_nums']) ) ? $widget[$wid]['sig_ga_nums'] : 0;
+            $sig_ga_cache = ( isset($widget[$wid]['sig_ga_cache']) ) ? $widget[$wid]['sig_ga_cache'] : 3600;
+
+            //load today data
+            if( empty($sig_ga_cache) or $sig_ga_cache == 0 ){
+                $today_data = Sig_Ga_Data::get_today_data();
+            }else{
+                if( false === $today_data = get_transient('ga_today_data') ){
+                    $today_data = Sig_Ga_Data::get_today_data();
+                    if($today_data!==false) set_transient('ga_today_data', $today_data, $sig_ga_cache);
+                }
+            }
+
+            //output
+            $html = '';
+            $html .= sprintf('<div data-time="%1s">%2s：%3s</div>',
+                    (!empty($today_data['time'])) ? $today_data['time']:"",
+                    ($sig_ga_type==1) ? __('本日瀏覽','show-google-analytics-widget'): __('本日人氣','show-google-analytics-widget'),
+                    ($sig_ga_type==1) ? number_format($today_data['pageview']+$sig_ga_nums) : number_format($today_data['visit']+$sig_ga_nums)
+            );
+
+            //load total data
+            if( empty($sig_ga_cache) or $sig_ga_cache == 0 ){
+                $view_data = Sig_Ga_Data::get_all_view_data();
+            }else{
+                if( false === $view_data = get_transient('ga_all_view_data') ){
+                    $view_data = Sig_Ga_Data::get_all_view_data();
+                    if($view_data!==false) set_transient('ga_all_view_data', $view_data, $sig_ga_cache);
+                }
+            }
+
+            $html .= sprintf('<div data-time="%1s">%2s：%3s</div>',
+                    (!empty($view_data['time'])) ? $view_data['time']:"",
+                    ($sig_ga_type==1) ? __('累積瀏覽','show-google-analytics-widget'): __('累積人氣','show-google-analytics-widget'),
+                    ($sig_ga_type==1) ? number_format($view_data['pageview']+$sig_ga_nums) : number_format($view_data['visit']+$sig_ga_nums)
+            );
+
+            return $html;
         }
 
-        $today = ($sig_ga_type==1) ? __('本日瀏覽：','show-google-analytics-widget'): __('本日人氣：','show-google-analytics-widget');
 
-        if( $today_data === false ) {
-            $today .= '--';
-            $html .= '<div>'.$today.'</div>';
-        } else {
-            $today .= ($sig_ga_type==1) ? number_format($today_data['pageview']) : number_format($today_data['visit']);
-            $html .= '<div data-time="'.$today_data['time'].'">'.$today.'</div>';
+    }
+
+    public function show_ga_hot_widget($widget_id=''){
+
+        if( empty($widget_id) ){
+            return '(No ID)';
+        }else{
+
+            //load config
+            $arr = explode("-",$widget_id);
+            $wid = end($arr);
+            $widget = get_option('widget_'.SIG_GA_VIEW_WIDGET);
+
+            $sig_ga_hot_day = ( isset($widget[$wid]['sig_ga_hot_day']) ) ? $widget[$wid]['sig_ga_hot_day'] : 0;
+            $sig_ga_hot_nums = ( isset($widget[$wid]['sig_ga_hot_nums']) ) ? $widget[$wid]['sig_ga_hot_nums'] : 5;
+            $sig_ga_hot_cache = ( isset($widget[$wid]['sig_ga_hot_cache']) ) ? $widget[$wid]['sig_ga_hot_cache'] : 3600;
+
+
+            if( empty($sig_ga_hot_cache) && $sig_ga_hot_cache == 0 ){
+                $hot_data = Sig_Ga_Data::get_hot_data($sig_ga_hot_nums,$sig_ga_hot_day);
+            }else{
+                if( false === $hot_data = get_transient('ga_hot_data') ){
+                    $hot_data = Sig_Ga_Data::get_hot_data($sig_ga_hot_nums,$sig_ga_hot_day);
+                    if($hot_data!==false) set_transient('ga_hot_data', $hot_data, $sig_ga_hot_cache);
+                }
+            }
+
+            $post = '';
+
+            if( !empty($hot_data['results']) && count($hot_data['results'])>0 ){
+                $post .= '<ul data-time="'.((!empty($hot_data['time'])) ? $hot_data['time']:'').'">';
+                foreach( $hot_data['results'] as $k => $rs) {
+                    $post .= "<li><a href=\"{$rs['pagepath']}\">{$rs['pageTitle']}</a></li>";
+                }
+                $post .= '</ul>';
+            }else{
+                $post .= '--';
+            }
+
+            return $post;
         }
-
-
-        if( false === $view_data = get_transient('ga_all_view_data') ){
-            $view_data = Sig_Ga_Data::get_all_view_data();
-            if($view_data!==false) set_transient('ga_all_view_data', $view_data, $expire);
-        }
-
-        $total =  ($sig_ga_type==1) ? __('累積瀏覽：','show-google-analytics-widget'): __('累積人氣：','show-google-analytics-widget');
-
-        if( $view_data === false ) {
-            $total .= '--';
-            $html .= '<div>'.$total.'</div>';
-        } else {
-            $total .= ($sig_ga_type==1) ? number_format($view_data['pageview']+$sig_ga_nums) : number_format($view_data['visit']+$sig_ga_nums);
-            $html .= '<div data-time="'.$view_data['time'].'">'.$total.'</div>';
-        }
-
-
-
-        return $html;
     }
 
 
@@ -334,21 +373,11 @@ class SigGaWidget{
                                 </tr>
 
                                 <tr valign="top">
-                                    <th scope="row"><?php _e('獲取資料間隔：','show-google-analytics-widget')?></th>
-                                    <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_cache]" value="<?php echo (!empty($config['sig_ga_cache'])) ? esc_attr( $config['sig_ga_cache'] ) : SIG_GA_CACHE ; ?>"  onkeyup="value=value.replace(/[^\d.]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d.]/g,''))">秒
-                                    <p class="description"><?php _e('預設時間為600秒，過短的時間有可能造成網頁開啟過於緩慢。','show-google-analytics-widget')?></p></td>
-                                </tr>
-
-                                <tr valign="top">
                                     <th scope="row"><?php _e('網站的 Profile ID：','show-google-analytics-widget')?></th>
                                     <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_id]" value="<?php if(!empty($config['sig_ga_id'])) echo esc_attr( $config['sig_ga_id'] ); ?>" />
                                     <p class="description"><?php _e('到你的 Google Analytics 中，切換到你的站台，在瀏覽器的URL應該是這樣子『https://www.google.com/analytics/web/#report/visitors-overview/a1234b23478970 p1234567/』，找最後 p 之後的數字1234567','show-google-analytics-widget')?></p></td>
                                 </tr>
 
-                                <tr valign="top">
-                                    <th scope="row"><?php _e('使用非同步顯示數據：','show-google-analytics-widget')?></th>
-                                    <td><input type="checkbox" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_ajax]" value="1" <?php echo ( !empty($config['sig_ga_ajax']) && $config['sig_ga_ajax']==1 ) ? 'checked="checked"':''; ?> /> <?php _e('若安裝了快取外掛，統計數字長時間都無法變動時，建議將此項目勾選','show-google-analytics-widget')?></td>
-                                </tr>
 
                             </table>
                             <?php submit_button(); ?>
@@ -363,7 +392,7 @@ class SigGaWidget{
                         <div style="background-color: #fff;padding: 15px; line-height: 1.8;">
                             <h2><?php echo __('補充說明','show-google-analytics-widget')?></h2>
                             <ol style="font-size: 15px;">
-                                <li>外掛使用教學：在這推薦Gill吉兒的文章，步驟非常詳細。 <a href="https://reurl.cc/pm5ERZ" target="_blank">https://reurl.cc/pm5ERZ</a></li>
+                                <li>如何取得GA服務帳號、P12 Key教學：在這推薦Gill吉兒的文章，步驟非常詳細。 <a href="https://reurl.cc/pm5ERZ" target="_blank">https://reurl.cc/pm5ERZ</a></li>
                                 <li>請注意！本外掛使用 Google Analytics API(V3)，每日有呼叫次數限制，超過的請求次數，您可能需要負擔費用。(您可增加資料重新獲取的間隔秒數來避免超出呼叫次數)</li>
                                 <li><?php echo __('文章點閱次數的短代碼寫法：','show-google-analytics-widget')?><br>[sig_post_pv label="瀏覽："]</li>
                             </ol>
@@ -384,19 +413,17 @@ class SigGaWidget{
         return $existing_mimes;
     }
 
-    public function wpajax_get_pv(){
+    public function wpajax_get_data(){
 
-        $config = $this->get_ga_config();
+        $widget_id = ( isset($_GET['id']) && !empty($_GET['id']) ) ? $_GET['id'] : '';
+        $type = ( isset($_GET['type']) && !empty($_GET['type']) ) ? $_GET['type'] : '';
 
-        if( !empty($config['sig_ga_id']) ){
-
-            $sig_ga_id = $config['sig_ga_id'];
-
-            $widget_id = ( isset($_GET['id']) && !empty($_GET['id']) ) ? $_GET['id'] : '';
-
+        if($type=='views'){
             echo $this->show_ga_views_widget($widget_id);
-
+        }else if($type=='hot'){
+            echo $this->show_ga_hot_widget($widget_id);
         }
+
         wp_die();
     }
 
@@ -427,19 +454,6 @@ class SigGaWidget{
         }
 
         return $array['label'].$post_view;
-    }
-
-    public function add_view_in_the_content( $content ) {
-
-        if ( is_single() && is_singular()  ) {
-
-            $config = $this->get_ga_config();
-            if( !empty($config['sig_ga_postview']) && $config['sig_ga_postview']==1 ){
-                $content .= '點閱數：'.Sig_Ga_Data::get_post_view_data();
-            }
-        }
-
-        return $content;
     }
 
 
