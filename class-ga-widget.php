@@ -15,7 +15,7 @@ class  Sig_Ga_Views_Widget extends WP_Widget {
         );
     }
 
-    function widget( $args, $instance ) {
+    public function widget( $args, $instance ) {
 
         extract( $args );
 
@@ -25,28 +25,26 @@ class  Sig_Ga_Views_Widget extends WP_Widget {
         $sig_ga_cache   = (!empty($instance['sig_ga_cache'])) ? $instance['sig_ga_cache'] : 60*60;
         $sig_ga_ajax    = (!empty($instance['sig_ga_ajax'])) ? $instance['sig_ga_ajax'] : 0;
 
-        $widget_id = $args['widget_id'];
+        $widget_id = (!empty($args['widget_id'])) ? $args['widget_id'] : '';
 
         $content = $before_widget;
         $content .= $before_title . $sig_ga_title . $after_title;
 
-        if( !empty($sig_ga_ajax) && $sig_ga_ajax==1 ){
-
-            $content .= '<div id="ga-box-'.$widget_id.'"><img src="'. plugin_dir_url(__FILE__) .'assets/img/loading.gif"></div>';
-            $content .= $after_widget;
-            $content .= '<script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action=sig-ga-widget&type=views&id='.$widget_id.'&t='.time().'\', function(data) {$(\'#ga-box-'.$widget_id.'\').html(data);    });});</script>';
+        if( !is_admin() && !empty($widget_id) && !empty($sig_ga_ajax) ){
+            $content .= '<div id="ga-box-'.$widget_id.'"><img src="'. plugin_dir_url(__FILE__) .'assets/img/loading.gif"><script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action=sig-ga-widget&type=views&id='.$widget_id.'&t='.time().'\', function(data) {$(\'#ga-box-'.$widget_id.'\').html(data);    });});</script></div>';
         }else{
             $obj = new SigGaWidget();
-            $content .= $obj->show_ga_views_widget($widget_id);
-            $content .= $after_widget;
+            $content .= $obj->show_ga_views_widget($instance);
         }
+
+        $content .= $after_widget;
 
         echo $content;
         return;
 
     }
 
-    function form( $instance ) {
+    public function form( $instance ) {
 
         $defaults = [
             'sig_ga_title'  => __('參觀人氣','show-google-analytics-widget'),
@@ -86,7 +84,7 @@ class  Sig_Ga_Views_Widget extends WP_Widget {
     <?php
     }
 
-    function update( $new_instance, $old_instance ) {
+    public function update( $new_instance, $old_instance ) {
 
         $instance = $old_instance;
 
@@ -94,11 +92,11 @@ class  Sig_Ga_Views_Widget extends WP_Widget {
         $instance['sig_ga_type']       = strip_tags( $new_instance['sig_ga_type'] );
         $instance['sig_ga_nums']       = strip_tags( preg_replace('/[^0-9]/','',$new_instance['sig_ga_nums']) );
         $instance['sig_ga_cache']      = strip_tags( preg_replace('/[^0-9]/','',$new_instance['sig_ga_cache']) );
-        $instance['sig_ga_ajax']       = strip_tags( $new_instance['sig_ga_ajax'] );
+        $instance['sig_ga_ajax']       = (!empty($new_instance['sig_ga_ajax'])) ? 1:0;
 
         if(empty($instance['sig_ga_nums'])) $instance['sig_ga_nums'] = 0;
         if(empty($instance['sig_ga_cache'])) $instance['sig_ga_cache'] = 0;
-        $instance['sig_ga_ajax'] = (!empty($instance['sig_ga_ajax'])) ? 1:0;
+
 
         //clear transient
         delete_transient('ga_today_data');
@@ -135,21 +133,18 @@ class Sig_Ga_Hot_Widget extends WP_Widget {
         $sig_ga_hot_cache   = (!empty($instance['sig_ga_hot_cache'])) ? $instance['sig_ga_hot_cache'] : 60*60;
         $sig_ga_hot_ajax    = (!empty($instance['sig_ga_hot_ajax'])) ? $instance['sig_ga_hot_ajax'] : 0;
 
-        $widget_id = $args['widget_id'];
+        $widget_id = (!empty($args['widget_id'])) ? $args['widget_id'] : '';
 
         $content = $before_widget;
         $content .= $before_title . $sig_ga_hot_title . $after_title;
 
-        if( !empty($sig_ga_hot_ajax) && $sig_ga_hot_ajax==1 ){
-
-            $content .= '<div id="ga-box-'.$widget_id.'"><img src="'. plugin_dir_url(__FILE__) .'assets/img/loading.gif"></div>';
-            $content .= $after_widget;
-            $content .= '<script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action=sig-ga-widget&type=hot&id='.$widget_id.'&t='.time().'\', function(data) {$(\'#ga-box-'.$widget_id.'\').html(data);    });});</script>';
+        if( !is_admin() && !empty($widget_id) && !empty($sig_ga_hot_ajax) ){
+            $content .= '<div id="ga-box-'.$widget_id.'"><img src="'. plugin_dir_url(__FILE__) .'assets/img/loading.gif"><script type="text/javascript">jQuery(document).ready(function($) {$.get(\'/wp-admin/admin-ajax.php?action=sig-ga-widget&type=hot&id='.$widget_id.'&t='.time().'\', function(data) {$(\'#ga-box-'.$widget_id.'\').html(data);    });});</script></div>';
         }else{
             $obj = new SigGaWidget();
-            $content .= $obj->show_ga_hot_widget($widget_id);
-            $content .= $after_widget;
+            $content .= $obj->show_ga_hot_widget($instance);
         }
+        $content .= $after_widget;
 
         echo $content;
         return;
@@ -202,11 +197,10 @@ class Sig_Ga_Hot_Widget extends WP_Widget {
         $instance['sig_ga_hot_day']        = strip_tags( $new_instance['sig_ga_hot_day'] );
         $instance['sig_ga_hot_nums']       = strip_tags( preg_replace('/[^0-9]/','',$new_instance['sig_ga_hot_nums']) );
         $instance['sig_ga_hot_cache']      = strip_tags( preg_replace('/[^0-9]/','',$new_instance['sig_ga_hot_cache']) );
-        $instance['sig_ga_hot_ajax']       = strip_tags( $new_instance['sig_ga_hot_ajax'] );
+        $instance['sig_ga_hot_ajax']       = (!empty($new_instance['sig_ga_hot_ajax'])) ? 1:0;
 
         if(empty($instance['sig_ga_hot_nums'])) $instance['sig_ga_hot_nums'] = 10;
         if(empty($instance['sig_ga_hot_cache'])) $instance['sig_ga_hot_cache'] = 0;
-        $instance['sig_ga_hot_ajax'] = (!empty($instance['sig_ga_hot_ajax'])) ? 1:0;
 
         //clear transient
         delete_transient('ga_hot_data');

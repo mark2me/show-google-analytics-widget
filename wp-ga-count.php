@@ -200,17 +200,23 @@ class SigGaWidget{
     public function show_ga_views_widget($widget_id=''){
 
         if( empty($widget_id) ){
-            return '(No ID)';
+            return '(No Data)';
         }else{
 
             //load config
-            $arr = explode("-",$widget_id);
-            $wid = end($arr);
-            $widget = get_option('widget_'.SIG_GA_VIEW_WIDGET);
+            if( is_array($widget_id) ){
+                $sig_ga_type = ( isset($widget_id['sig_ga_type']) ) ? $widget_id['sig_ga_type'] : 0;
+                $sig_ga_nums = ( isset($widget_id['sig_ga_nums']) ) ? $widget_id['sig_ga_nums'] : 0;
+                $sig_ga_cache = ( isset($widget_id['sig_ga_cache']) ) ? $widget_id['sig_ga_cache'] : 3600;
+            }else{
+                $arr = explode("-",$widget_id);
+                $wid = end($arr);
+                $widget = get_option('widget_'.SIG_GA_VIEW_WIDGET);
 
-            $sig_ga_type = ( isset($widget[$wid]['sig_ga_type']) ) ? $widget[$wid]['sig_ga_type'] : 0;
-            $sig_ga_nums = ( isset($widget[$wid]['sig_ga_nums']) ) ? $widget[$wid]['sig_ga_nums'] : 0;
-            $sig_ga_cache = ( isset($widget[$wid]['sig_ga_cache']) ) ? $widget[$wid]['sig_ga_cache'] : 3600;
+                $sig_ga_type = ( isset($widget[$wid]['sig_ga_type']) ) ? $widget[$wid]['sig_ga_type'] : 0;
+                $sig_ga_nums = ( isset($widget[$wid]['sig_ga_nums']) ) ? $widget[$wid]['sig_ga_nums'] : 0;
+                $sig_ga_cache = ( isset($widget[$wid]['sig_ga_cache']) ) ? $widget[$wid]['sig_ga_cache'] : 3600;
+            }
 
             //load today data
             if( empty($sig_ga_cache) or $sig_ga_cache == 0 ){
@@ -255,18 +261,23 @@ class SigGaWidget{
     public function show_ga_hot_widget($widget_id=''){
 
         if( empty($widget_id) ){
-            return '(No ID)';
+            return '(No Data)';
         }else{
 
             //load config
-            $arr = explode("-",$widget_id);
-            $wid = end($arr);
-            $widget = get_option('widget_'.SIG_GA_HOT_WIDGET);
+            if( is_array($widget_id) ){
+                $sig_ga_hot_day = ( isset($widget_id['sig_ga_hot_day']) ) ? $widget_id['sig_ga_hot_day'] : 0;
+                $sig_ga_hot_nums = ( isset($widget_id['sig_ga_hot_nums']) ) ? $widget_id['sig_ga_hot_nums'] : 5;
+                $sig_ga_hot_cache = ( isset($widget_id['sig_ga_hot_cache']) ) ? $widget_id['sig_ga_hot_cache'] : 3600;
+            }else{
+                $arr = explode("-",$widget_id);
+                $wid = end($arr);
+                $widget = get_option('widget_'.SIG_GA_HOT_WIDGET);
 
-            $sig_ga_hot_day = ( isset($widget[$wid]['sig_ga_hot_day']) ) ? $widget[$wid]['sig_ga_hot_day'] : 0;
-            $sig_ga_hot_nums = ( isset($widget[$wid]['sig_ga_hot_nums']) ) ? $widget[$wid]['sig_ga_hot_nums'] : 5;
-            $sig_ga_hot_cache = ( isset($widget[$wid]['sig_ga_hot_cache']) ) ? $widget[$wid]['sig_ga_hot_cache'] : 3600;
-
+                $sig_ga_hot_day = ( isset($widget[$wid]['sig_ga_hot_day']) ) ? $widget[$wid]['sig_ga_hot_day'] : 0;
+                $sig_ga_hot_nums = ( isset($widget[$wid]['sig_ga_hot_nums']) ) ? $widget[$wid]['sig_ga_hot_nums'] : 5;
+                $sig_ga_hot_cache = ( isset($widget[$wid]['sig_ga_hot_cache']) ) ? $widget[$wid]['sig_ga_hot_cache'] : 3600;
+            }
 
             if( empty($sig_ga_hot_cache) && $sig_ga_hot_cache == 0 ){
                 $hot_data = Sig_Ga_Data::get_hot_data($sig_ga_hot_nums,$sig_ga_hot_day);
