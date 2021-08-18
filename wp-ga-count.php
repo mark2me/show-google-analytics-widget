@@ -227,7 +227,7 @@ class SigGaWidget{
             $html .= sprintf('<div data-time="%1s">%2s：%3s</div>',
                     (!empty($today_data['time'])) ? $today_data['time']:"",
                     ($sig_ga_type==1) ? __('本日瀏覽','show-google-analytics-widget'): __('本日人氣','show-google-analytics-widget'),
-                    ($sig_ga_type==1) ? number_format($today_data['pageview']+$sig_ga_nums) : number_format($today_data['visit']+$sig_ga_nums)
+                    ($sig_ga_type==1) ? number_format($today_data['pageview']) : number_format($today_data['visit'])
             );
 
             //load total data
@@ -243,7 +243,7 @@ class SigGaWidget{
             $html .= sprintf('<div data-time="%1s">%2s：%3s</div>',
                     (!empty($view_data['time'])) ? $view_data['time']:"",
                     ($sig_ga_type==1) ? __('累積瀏覽','show-google-analytics-widget'): __('累積人氣','show-google-analytics-widget'),
-                    ($sig_ga_type==1) ? number_format($view_data['pageview']+$sig_ga_nums) : number_format($view_data['visit']+$sig_ga_nums)
+                    ($sig_ga_type==1) ? number_format( (int)$view_data['pageview']+(int)$sig_ga_nums) : number_format( (int)$view_data['visit']+(int)$sig_ga_nums)
             );
 
             return $html;
