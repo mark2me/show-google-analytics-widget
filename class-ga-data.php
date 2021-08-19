@@ -72,7 +72,8 @@ class Sig_Ga_Data {
         $uri_path = str_replace(home_url(), '', get_permalink());
         $uri_path = urldecode($uri_path);
 
-        $ga = $this->call_ga_api([
+        $sig = new SigGaWidget();
+        $ga = $sig->call_ga_api([
             array('pagePath'),
             array('pageviews','uniquePageviews'),
             '',

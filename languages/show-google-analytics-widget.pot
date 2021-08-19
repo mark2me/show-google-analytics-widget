@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2.
 msgid ""
 msgstr ""
-"Project-Id-Version: Show Google Analytics widget 1.5.1\n"
+"Project-Id-Version: Show Google Analytics widget 1.5.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/show-google-analytics-widget\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2021-08-17T18:03:23+08:00\n"
+"POT-Creation-Date: 2021-08-19T14:40:04+08:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.5.0\n"
 "X-Domain: show-google-analytics-widget\n"
@@ -43,68 +43,68 @@ msgid "顯示GA瀏覽的統計數字"
 msgstr ""
 
 #: class-ga-widget.php:22
-#: class-ga-widget.php:52
+#: class-ga-widget.php:50
 msgid "參觀人氣"
 msgstr ""
 
-#: class-ga-widget.php:63
-#: class-ga-widget.php:172
+#: class-ga-widget.php:61
+#: class-ga-widget.php:167
 msgid "自訂標題："
 msgstr ""
 
-#: class-ga-widget.php:67
+#: class-ga-widget.php:65
 msgid "顯示類型："
 msgstr ""
 
-#: class-ga-widget.php:69
+#: class-ga-widget.php:67
 msgid "Visit(人次)"
 msgstr ""
 
-#: class-ga-widget.php:70
+#: class-ga-widget.php:68
 msgid "Pageview(頁次)"
 msgstr ""
 
-#: class-ga-widget.php:74
+#: class-ga-widget.php:72
 msgid "調整計次："
 msgstr ""
 
-#: class-ga-widget.php:75
+#: class-ga-widget.php:73
 msgid "輸入起跳的數字"
 msgstr ""
 
-#: class-ga-widget.php:78
-#: class-ga-widget.php:187
+#: class-ga-widget.php:76
+#: class-ga-widget.php:182
 msgid "快取時間："
 msgstr ""
 
-#: class-ga-widget.php:79
-#: class-ga-widget.php:188
+#: class-ga-widget.php:77
+#: class-ga-widget.php:183
 msgid "秒 (0表示不做快取)"
 msgstr ""
 
+#: class-ga-widget.php:119
 #: class-ga-widget.php:121
-#: class-ga-widget.php:123
 msgid "顯示GA熱門文章"
 msgstr ""
 
-#: class-ga-widget.php:132
-#: class-ga-widget.php:162
+#: class-ga-widget.php:130
+#: class-ga-widget.php:157
 msgid "熱門文章"
 msgstr ""
 
-#: class-ga-widget.php:176
+#: class-ga-widget.php:171
 msgid "選定日期："
 msgstr ""
 
-#: class-ga-widget.php:178
+#: class-ga-widget.php:173
 msgid "今天"
 msgstr ""
 
-#: class-ga-widget.php:179
+#: class-ga-widget.php:174
 msgid "昨天"
 msgstr ""
 
-#: class-ga-widget.php:183
+#: class-ga-widget.php:178
 msgid "顯示文章數："
 msgstr ""
 
@@ -149,88 +149,104 @@ msgstr ""
 msgid "Data Time:"
 msgstr ""
 
+#: templates/setup.php:9
+msgid "設定 GA 帳號及相關參數"
+msgstr ""
+
+#: templates/setup.php:19
+msgid "GA授權服務帳號："
+msgstr ""
+
+#: templates/setup.php:25
+msgid "上傳 P12 key 檔："
+msgstr ""
+
+#: templates/setup.php:29
+msgid "目前檔案位置："
+msgstr ""
+
+#: templates/setup.php:31
+msgid "尚未上傳"
+msgstr ""
+
+#: templates/setup.php:36
+msgid "你可以先自行更改檔名再上傳。"
+msgstr ""
+
+#: templates/setup.php:43
+msgid "網站的 Profile ID："
+msgstr ""
+
+#: templates/setup.php:45
+msgid "到你的 Google Analytics 中，切換到你的站台，在瀏覽器的URL應該是這樣子『https://www.google.com/analytics/web/#report/visitors-overview/a1234b23478970 p1234567/』，找最後 p 之後的數字1234567"
+msgstr ""
+
+#: templates/setup.php:52
+msgid "單篇文章自動顯示瀏覽次數"
+msgstr ""
+
+#: templates/setup.php:56
+msgid "自訂描述："
+msgstr ""
+
+#: templates/setup.php:64
+msgid "選擇顯示位置："
+msgstr ""
+
+#: templates/setup.php:75
+msgid "暫存時間："
+msgstr ""
+
+#: templates/setup.php:91
+msgid "補充說明"
+msgstr ""
+
+#: templates/setup.php:95
+msgid "文章點閱次數的短代碼寫法："
+msgstr ""
+
 #: templates/total.php:17
 msgid "歷年統計："
 msgstr ""
 
-#: wp-ga-count.php:65
+#: wp-ga-count.php:70
 msgid "查看本月份的瀏覽人次統計表"
 msgstr ""
 
-#: wp-ga-count.php:66
-#: wp-ga-count.php:93
+#: wp-ga-count.php:71
+#: wp-ga-count.php:97
 msgid "本月份GA資訊"
 msgstr ""
 
-#: wp-ga-count.php:87
+#: wp-ga-count.php:91
 msgid "是否還沒設定GA服務帳號？"
 msgstr ""
 
-#: wp-ga-count.php:88
+#: wp-ga-count.php:92
 msgid "立刻去新增"
 msgstr ""
 
-#: wp-ga-count.php:175
+#: wp-ga-count.php:179
 msgid "注意: 尚未將 p12 檔案上傳到網站內"
 msgstr ""
 
-#: wp-ga-count.php:229
+#: wp-ga-count.php:231
 msgid "本日瀏覽"
 msgstr ""
 
-#: wp-ga-count.php:229
+#: wp-ga-count.php:231
 msgid "本日人氣"
 msgstr ""
 
-#: wp-ga-count.php:245
+#: wp-ga-count.php:247
 msgid "累積瀏覽"
 msgstr ""
 
-#: wp-ga-count.php:245
+#: wp-ga-count.php:247
 msgid "累積人氣"
 msgstr ""
 
-#: wp-ga-count.php:305
-#: wp-ga-count.php:306
+#: wp-ga-count.php:312
+#: wp-ga-count.php:313
 msgid "設定 GA 帳號及參數"
-msgstr ""
-
-#: wp-ga-count.php:337
-msgid "設定 GA 帳號及相關參數"
-msgstr ""
-
-#: wp-ga-count.php:347
-msgid "GA授權服務帳號："
-msgstr ""
-
-#: wp-ga-count.php:353
-msgid "上傳 P12 key 檔："
-msgstr ""
-
-#: wp-ga-count.php:357
-msgid "目前檔案位置："
-msgstr ""
-
-#: wp-ga-count.php:359
-msgid "尚未上傳"
-msgstr ""
-
-#: wp-ga-count.php:364
-msgid "你可以先自行更改檔名再上傳。"
-msgstr ""
-
-#: wp-ga-count.php:371
-msgid "網站的 Profile ID："
-msgstr ""
-
-#: wp-ga-count.php:373
-msgid "到你的 Google Analytics 中，切換到你的站台，在瀏覽器的URL應該是這樣子『https://www.google.com/analytics/web/#report/visitors-overview/a1234b23478970 p1234567/』，找最後 p 之後的數字1234567"
-msgstr ""
-
-#: wp-ga-count.php:386
-msgid "補充說明"
-msgstr ""
-
-#: wp-ga-count.php:390
-msgid "文章點閱次數的短代碼寫法："
 msgstr ""

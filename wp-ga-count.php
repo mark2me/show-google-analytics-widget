@@ -3,7 +3,7 @@
  * Plugin Name: Show Google Analytics widget
  * Plugin URI:  https://github.com/mark2me/show-google-analytics-widget
  * Description: 利用 Google Analytics 資料來顯示網站的今日參觀人數和總參觀人數小工具
- * Version:     1.5.2
+ * Version:     1.5.3
  * Author:      Simon Chuang
  * Author URI:  https://github.com/mark2me
  * License:     GPLv2
@@ -13,10 +13,11 @@
 
 define( 'SIG_GA_PLUGIN_NAME', 'wp-show-ga-widget' );
 define( 'SIG_GA_DIR', dirname(__FILE__) );
-define( 'SIG_GA_CACHE', 600);
+define( 'SIG_GA_CACHE', 3600);
 define( 'SIG_GA_CONFIG', 'sig-ga-config');
 define( 'SIG_GA_VIEW_WIDGET', 'sig-show-pageview');
 define( 'SIG_GA_HOT_WIDGET', 'sig-show-hot');
+define( 'SIG_GA_PV_CLASS', 'sig_ga_pv');
 
 
 load_plugin_textdomain( SIG_GA_PLUGIN_NAME , false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
@@ -25,6 +26,8 @@ load_plugin_textdomain( SIG_GA_PLUGIN_NAME , false, dirname( plugin_basename( __
 new SigGaWidget();
 
 class SigGaWidget{
+
+    public $get_ga_config;
 
     public function __construct() {
 
@@ -42,10 +45,12 @@ class SigGaWidget{
         add_filter( 'upload_mimes', array($this,'custom_upload_mimes') );
 
         add_shortcode( 'sig_post_pv', array($this,'shortcode_post_pageviews') );
+        add_filter( 'the_content' , array($this,'add_post_pageviews') );
 
         add_action( 'wp_ajax_sig-ga-widget', array($this,'wpajax_get_data') );
         add_action( 'wp_ajax_nopriv_sig-ga-widget', array($this,'wpajax_get_data') );
 
+        $this->get_ga_config = get_option(SIG_GA_CONFIG);
     }
 
     public function plugin_settings_link($links) {
@@ -76,8 +81,7 @@ class SigGaWidget{
 
         wp_enqueue_style( 'chart', plugin_dir_url(__FILE__) . 'assets/js/morris.css' );
         wp_enqueue_script( 'raphael', plugin_dir_url(__FILE__) . 'assets/js/raphael-min.js',array('jquery') );
-        wp_enqueue_script('chart', plugin_dir_url(__FILE__) . 'assets/js/morris.min.js',array('jquery'));
-
+        wp_enqueue_script( 'chart', plugin_dir_url(__FILE__) . 'assets/js/morris.min.js',array('jquery'));
         wp_enqueue_style( 'bootstrap4', plugin_dir_url(__FILE__) . 'assets/css/bootstrap-grid.min.css' );
     }
 
@@ -112,7 +116,7 @@ class SigGaWidget{
 
     private function check_ga_config() {
 
-        $config = $this->get_ga_config();
+        $config = $this->get_ga_config;
 
         if( $config !== false ){
 
@@ -139,7 +143,7 @@ class SigGaWidget{
 
     public function call_ga_api($data='') {
 
-        $config = $this->get_ga_config();
+        $config = $this->get_ga_config;
 
         if( $config !== false ){
 
@@ -188,14 +192,6 @@ class SigGaWidget{
         }
     }
 
-    public function get_ga_config() {
-        $config = get_option(SIG_GA_CONFIG);
-        if ( is_array($config) ) {
-            return $config;
-        } else {
-            return false;
-        }
-    }
 
     public function show_ga_views_widget($widget_id=''){
 
@@ -340,73 +336,7 @@ class SigGaWidget{
      *  setup page
      */
     public function ga_settings_page() {
-
-        $config = $this->get_ga_config();
-
-        ?>
-        <div class="wrap">
-            <h2><?php _e('設定 GA 帳號及相關參數','show-google-analytics-widget')?></h2>
-
-            <div class="container-">
-                <div class="row">
-                    <!-- left -->
-                    <div class="col-12 col-sm-8">
-                        <form method="post" action="options.php" enctype="multipart/form-data">
-                            <?php settings_fields('sig-ga-option-group'); ?>
-                            <table class="form-table">
-                                <tr valign="top">
-                                    <th scope="row"><?php _e('GA授權服務帳號：','show-google-analytics-widget')?></th>
-                                    <td><input type="text" class="regular-text" name="<?php echo SIG_GA_CONFIG?>[sig_ga_account]" value="<?php if(!empty($config['sig_ga_account'])) echo esc_attr( $config['sig_ga_account'] ); ?>" />
-                                    <p class="description">到 <a href="https://console.developers.google.com/" target="_blank">Google Developers</a> 申請，並下載p12檔案。再把這個服務帳號加入 Google Analytics 你的站台管理員，權限要可檢視和分析。 </p></td>
-                                </tr>
-
-                                <tr valign="top">
-                                    <th scope="row"><?php _e('上傳 P12 key 檔：','show-google-analytics-widget')?></th>
-                                    <td><p class="description"><?php
-                                            if( isset($config['sig_ga_upload']) and $config['sig_ga_upload'] !==''){
-                                                if( is_file($config['sig_ga_upload']) ){
-                                                    echo __('目前檔案位置：','show-google-analytics-widget') . $config['sig_ga_upload'];
-                                                }else{
-                                                    echo __('尚未上傳','show-google-analytics-widget');
-                                                }
-                                                echo '<input type="hidden" name="'.SIG_GA_CONFIG.'[sig_ga_upload]" value="'.$config['sig_ga_upload'].'">';
-
-                                            }else{
-                                                echo __('你可以先自行更改檔名再上傳。','show-google-analytics-widget');
-                                            }
-                                        ?></p>
-                                        <input type="file" class="regular-text" name="sig_ga_upload" /></td>
-                                </tr>
-
-                                <tr valign="top">
-                                    <th scope="row"><?php _e('網站的 Profile ID：','show-google-analytics-widget')?></th>
-                                    <td><input type="text" class="" name="<?php echo SIG_GA_CONFIG?>[sig_ga_id]" value="<?php if(!empty($config['sig_ga_id'])) echo esc_attr( $config['sig_ga_id'] ); ?>" />
-                                    <p class="description"><?php _e('到你的 Google Analytics 中，切換到你的站台，在瀏覽器的URL應該是這樣子『https://www.google.com/analytics/web/#report/visitors-overview/a1234b23478970 p1234567/』，找最後 p 之後的數字1234567','show-google-analytics-widget')?></p></td>
-                                </tr>
-
-
-                            </table>
-                            <?php submit_button(); ?>
-
-                        </form>
-                    </div>
-                    <!-- //left -->
-                    <!-- right -->
-                    <div class="col-12 col-sm-4">
-                        <div style="background-color: #fff;padding: 15px; line-height: 1.8;">
-                            <h2><?php echo __('補充說明','show-google-analytics-widget')?></h2>
-                            <ol style="font-size: 15px;">
-                                <li>如何取得GA服務帳號、P12 Key教學：在這推薦Gill吉兒的文章，步驟非常詳細。 <a href="https://reurl.cc/pm5ERZ" target="_blank">https://reurl.cc/pm5ERZ</a></li>
-                                <li>請注意！本外掛使用 Google Analytics API(V3)，每日有呼叫次數限制，超過的請求次數，您可能需要負擔費用。(您可增加資料重新獲取的間隔秒數來避免超出呼叫次數)</li>
-                                <li><?php echo __('文章點閱次數的短代碼寫法：','show-google-analytics-widget')?><br>[sig_post_pv label="瀏覽："]</li>
-                            </ol>
-                        </div>
-                    </div>
-                    <!-- //right -->
-                </div>
-            </div>
-        </div>
-        <?php
+        require_once(SIG_GA_DIR.'/templates/setup.php');
     }
 
     /**
@@ -431,33 +361,57 @@ class SigGaWidget{
         wp_die();
     }
 
+    public function add_post_pageviews($content) {
+
+        $config = $this->get_ga_config;
+
+        if( !empty($config['sig_ga_show_top']) or !empty($config['sig_ga_show_bom']) ) {
+
+            $post_view = '-';
+            $post_id = get_the_ID();
+            $label = ( !empty($config['sig_ga_pageview_label']) ) ? $config['sig_ga_pageview_label'] : '瀏覽次數';
+            $time = ( isset($config['sig_ga_pageview_cache']) ) ? absint($config['sig_ga_pageview_cache']) : SIG_GA_CACHE;
+
+            if( $post_id > 0 ) {
+                $key = 'sig_ga_pv_'.$post_id;
+                if( false === $post_view = get_transient($key) ){
+                    $post_view = Sig_Ga_Data::get_post_view_data();
+                    if($time>0) set_transient($key, $post_view, $time );
+                }
+            }
+
+            $pv = sprintf('<div class="'.SIG_GA_PV_CLASS.'">%1s%2s</div>', $label, $post_view);
+            $content = preg_replace('/\[sig_post_pv[^\]]*\]/m', '', $content);
+
+            if( !empty($config['sig_ga_show_top']) ) $content = $pv . $content;
+            if( !empty($config['sig_ga_show_bom']) ) $content = $content . $pv;
+        }
+
+        return $content;
+    }
+
     public function shortcode_post_pageviews($atts) {
 
         $array = shortcode_atts(
             array(
                 'label' => 'Page view:',
+                'class' => SIG_GA_PV_CLASS
             ),
             $atts
         );
 
         $post_view = '-';
-
         $post_id = get_the_ID();
 
         if( $post_id > 0 ) {
-
-            $key = 'ga_post_view_'.$post_id;
-            $post_view = get_transient($key);
-
-            if( $post_view === false ){
-
+            $key = 'sig_ga_pv_'.$post_id;
+            if( false === $post_view = get_transient($key) ){
                 $post_view = Sig_Ga_Data::get_post_view_data();
-                set_transient($key, $post_view, 60*60*1 );  // hour
+                set_transient($key, $post_view, 60*60*2 );  // hour
             }
-
         }
 
-        return $array['label'].$post_view;
+        return "<div class=\"{$array['class']}\">{$array['label']}{$post_view}</div>";
     }
 
 
