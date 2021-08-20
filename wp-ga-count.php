@@ -31,6 +31,8 @@ class SigGaWidget{
 
     public function __construct() {
 
+        $this->get_ga_config = get_option(SIG_GA_CONFIG);
+
         require_once( dirname( __FILE__ ) . '/class-ga-widget.php' );
         require_once( dirname( __FILE__ ) . '/class-ga-data.php' );
 
@@ -44,13 +46,15 @@ class SigGaWidget{
         add_action( 'admin_menu', array($this,'setting_ga_option_menu') );
         add_filter( 'upload_mimes', array($this,'custom_upload_mimes') );
 
-        add_shortcode( 'sig_post_pv', array($this,'shortcode_post_pageviews') );
-        add_filter( 'the_content' , array($this,'add_post_pageviews') );
+        if( empty($this->get_ga_config['sig_ga_show_top']) and empty($this->get_ga_config['sig_ga_show_bom']) ) {
+            add_shortcode( 'sig_post_pv', array($this,'shortcode_post_pv') );
+        }
+        add_filter( 'the_content' , array($this,'show_post_pv_the_content') );
 
         add_action( 'wp_ajax_sig-ga-widget', array($this,'wpajax_get_data') );
         add_action( 'wp_ajax_nopriv_sig-ga-widget', array($this,'wpajax_get_data') );
 
-        $this->get_ga_config = get_option(SIG_GA_CONFIG);
+
     }
 
     public function plugin_settings_link($links) {
@@ -361,36 +365,30 @@ class SigGaWidget{
         wp_die();
     }
 
-    public function add_post_pageviews($content) {
+    public function show_post_pv_the_content($content) {
 
-        $config = $this->get_ga_config;
+        if ( is_singular() && in_the_loop() && is_main_query() ) {
+            $config = $this->get_ga_config;
 
-        if( !empty($config['sig_ga_show_top']) or !empty($config['sig_ga_show_bom']) ) {
+            if( !empty($config['sig_ga_show_top']) or !empty($config['sig_ga_show_bom']) ) {
 
-            $post_view = '-';
-            $post_id = get_the_ID();
-            $label = ( !empty($config['sig_ga_pageview_label']) ) ? $config['sig_ga_pageview_label'] : '瀏覽次數';
-            $time = ( isset($config['sig_ga_pageview_cache']) ) ? absint($config['sig_ga_pageview_cache']) : SIG_GA_CACHE;
+                $label = ( !empty($config['sig_ga_pageview_label']) ) ? $config['sig_ga_pageview_label'] : __('瀏覽次數：','show-google-analytics-widget');
+                $html = $this->get_post_pv($this->get_ga_config, [
+                    'class' => SIG_GA_PV_CLASS,
+                    'label' => $label
+                ]);
 
-            if( $post_id > 0 ) {
-                $key = 'sig_ga_pv_'.$post_id;
-                if( false === $post_view = get_transient($key) ){
-                    $post_view = Sig_Ga_Data::get_post_view_data();
-                    if($time>0) set_transient($key, $post_view, $time );
-                }
+                $content = preg_replace('/\[sig_post_pv[^\]]*\]/m', '', $content);
+
+                if( !empty($config['sig_ga_show_top']) ) $content = $html . $content;
+                if( !empty($config['sig_ga_show_bom']) ) $content = $content . $html;
             }
-
-            $pv = sprintf('<div class="'.SIG_GA_PV_CLASS.'">%1s%2s</div>', $label, $post_view);
-            $content = preg_replace('/\[sig_post_pv[^\]]*\]/m', '', $content);
-
-            if( !empty($config['sig_ga_show_top']) ) $content = $pv . $content;
-            if( !empty($config['sig_ga_show_bom']) ) $content = $content . $pv;
         }
 
         return $content;
     }
 
-    public function shortcode_post_pageviews($atts) {
+    public function shortcode_post_pv($atts) {
 
         $array = shortcode_atts(
             array(
@@ -400,20 +398,37 @@ class SigGaWidget{
             $atts
         );
 
+        return $this->get_post_pv($this->get_ga_config, [
+            'class' => $array['class'],
+            'label' => $array['label']
+        ]);
+    }
+
+    private function get_post_pv($config=array(), $attr=array()){
+
+        if( empty($config) ) $config = $this->get_ga_config;
+
         $post_view = '-';
         $post_id = get_the_ID();
+        $time = ( isset($config['sig_ga_pageview_cache']) ) ? absint($config['sig_ga_pageview_cache']) : SIG_GA_CACHE;
 
         if( $post_id > 0 ) {
-            $key = 'sig_ga_pv_'.$post_id;
-            if( false === $post_view = get_transient($key) ){
+            if( empty($time) ){
                 $post_view = Sig_Ga_Data::get_post_view_data();
-                set_transient($key, $post_view, 60*60*2 );  // hour
+            }else{
+                $key = 'sig_ga_pv_'.$post_id;
+                if( false === $post_view = get_transient($key) ){
+                    $post_view = Sig_Ga_Data::get_post_view_data();
+                    set_transient($key, $post_view, $time );
+                }
             }
         }
 
-        return "<div class=\"{$array['class']}\">{$array['label']}{$post_view}</div>";
+        return sprintf('<div class="%1s">%2s%3s</div>',
+            ( !empty($attr['class']) ? $attr['class']:SIG_GA_PV_CLASS ),
+            ( !empty($attr['label']) ? $attr['label']: __('瀏覽次數：','show-google-analytics-widget') ),
+            $post_view
+        );
     }
-
-
 }
 

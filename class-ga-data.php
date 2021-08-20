@@ -34,6 +34,7 @@ class Sig_Ga_Data {
 
     }
 
+    // widget
     public static function get_all_view_data() {
 
         $sig = new SigGaWidget();
@@ -67,6 +68,7 @@ class Sig_Ga_Data {
 
     }
 
+    // single post view
     public static function get_post_view_data() {
 
         $uri_path = str_replace(home_url(), '', get_permalink());
